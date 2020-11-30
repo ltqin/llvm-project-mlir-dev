@@ -88,6 +88,12 @@ if(MLIR_MIOPEN_DRIVER_ENABLED)
   )
 endif()
 
+if(MLIR_LETAO_DRIVER_ENABLED)
+  list(APPEND MLIR_TEST_DEPENDS
+    mlir-letao-driver
+  )
+endif()
+
 add_lit_testsuite(check-mlir "Running the MLIR regression tests"
   ${CMAKE_CURRENT_BINARY_DIR}
   DEPENDS ${MLIR_TEST_DEPENDS}

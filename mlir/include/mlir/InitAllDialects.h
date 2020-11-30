@@ -32,6 +32,7 @@
 #include "mlir/Dialect/StandardOps/IR/Ops.h"
 #include "mlir/Dialect/Vector/VectorOps.h"
 #include "mlir/IR/Dialect.h"
+#include "mlir/Dialect/Letao/LetaoOps.h"
 
 namespace mlir {
 
@@ -56,6 +57,7 @@ inline void registerAllDialects() {
     registerDialect<SDBMDialect>();
     registerDialect<shape::ShapeDialect>();
     registerDialect<miopen::MIOpenDialect>();
+    registerDialect<letao::LetaoDialect>();
     return true;
   }();
   (void)init_once;

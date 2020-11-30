@@ -12,6 +12,7 @@ add_subdirectory(Shape)
 add_subdirectory(SPIRV)
 add_subdirectory(StandardOps)
 add_subdirectory(Vector)
+add_subdirectory(Letao)
 
 set(LLVM_OPTIONAL_SOURCES
   Traits.cpp

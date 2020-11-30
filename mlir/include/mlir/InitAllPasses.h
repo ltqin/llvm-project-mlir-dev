@@ -44,6 +44,7 @@
 #include "mlir/Transforms/Passes.h"
 #include "mlir/Transforms/ViewOpGraph.h"
 #include "mlir/Transforms/ViewRegionGraph.h"
+#include "mlir/Dialect/Letao/Passes.h"
 
 #include <cstdlib>
 
@@ -100,6 +101,10 @@ inline void registerAllPasses() {
   // MIOpen
 #define GEN_PASS_REGISTRATION
 #include "mlir/Dialect/MIOpen/Passes.h.inc"
+
+// Letao
+#define GEN_PASS_REGISTRATION
+#include "mlir/Dialect/Letao/Passes.h.inc"
 }
 
 } // namespace mlir
