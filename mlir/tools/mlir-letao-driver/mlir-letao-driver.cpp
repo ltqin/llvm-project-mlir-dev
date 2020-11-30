@@ -47,6 +47,18 @@ static cl::opt<std::string> outputFilename("o", cl::desc("Output filename"),
                                            cl::value_desc("filename"),
                                            cl::init("-"));
 
+static LogicalResult runMLIRPasses(ModuleOp &module,
+                                   mlir::PassPipelineCLParser &passPipeline,
+                                   StringRef kernelName) {
+  PassManager pm(module.getContext());
+  applyPassManagerCLOptions(pm);
+
+  // Passes for lowering letao dialect.
+  pm.addPass(mlir::letao::createMultiAddTransPass());
+
+  return pm.run(module);
+}
+
 int main(int argc, char **argv) {
 
   mlir::registerAllDialects();
@@ -71,51 +83,46 @@ int main(int argc, char **argv) {
   OwningModuleRef moduleRef;
   module = ModuleOp::create(builder.getUnknownLoc());
 
-  // Determine data type.
-  mlir::IntegerType dataType = builder.getI32Type();
-
-  auto funcType = builder.getFunctionType({dataType, dataType}, {});
-
+  auto funcType = builder.getFunctionType({}, {});
   SmallString<128> kernelName;
-  kernelName = "wulala";
+  kernelName = "test";
   auto func = FuncOp::create(builder.getUnknownLoc(), kernelName, funcType);
   module.push_back(func);
 
   Block *block = func.addEntryBlock();
 
-  MemRefType memrefType = MemRefType::get({2}, dataType);
-  AllocOp alloc = builder.create<AllocOp>(builder.getUnknownLoc(), memrefType);
+  auto addConstantI32_1 = builder.create<ConstantIntOp>(
+      builder.getUnknownLoc(), 0, builder.getIntegerType(32));
 
-  block->push_back(alloc);
+  auto addConstantI32_2 = builder.create<ConstantIntOp>(
+      builder.getUnknownLoc(), 10, builder.getIntegerType(32));
 
-  /*   auto zeroConstantI32Op =
-         builder.create<ConstantIntOp>(builder.getUnknownLoc(), 0,
- builder.getIntegerType(32));
+  auto addConstantI32_3 = builder.create<ConstantIntOp>(
+      builder.getUnknownLoc(), 20, builder.getIntegerType(32));
 
-     auto KPerBlockConstantI32Op =
-         builder.create<ConstantIntOp>(builder.getUnknownLoc(), 3,
- builder.getIntegerType(32));
+  auto addConstantI32_4 = builder.create<ConstantIntOp>(
+      builder.getUnknownLoc(), 30, builder.getIntegerType(32));
 
- block->push_back(zeroConstantI32Op);
- block->push_back(KPerBlockConstantI32Op);
+  block->push_back(addConstantI32_1);
+  block->push_back(addConstantI32_2);
+  block->push_back(addConstantI32_3);
+  block->push_back(addConstantI32_4);
 
-     auto movePosOp = builder.create<kevin::MovePosOp>(
+  auto movePosOp = builder.create<letao::MultiAddOp>(
+      builder.getUnknownLoc(), ValueRange{addConstantI32_1, addConstantI32_2,
+                                          addConstantI32_3, addConstantI32_4});
 
-         builder.getUnknownLoc(), alloc,
-         ValueRange{zeroConstantI32Op,KPerBlockConstantI32Op}
-         );
-
-     block->push_back(movePosOp);*/
+  block->push_back(movePosOp);
 
   auto returnOp =
       builder.create<ReturnOp>(builder.getUnknownLoc(), ValueRange{});
   block->push_back(returnOp);
 
-  /*if (failed(runMLIRPasses(module, passPipeline, kernelName))) {
+  if (failed(runMLIRPasses(module, passPipeline, kernelName))) {
     llvm::errs() << "Lowering failed.\n";
     exit(1);
   }
-*/
+
   auto output = openOutputFile(outputFilename, &errorMessage);
   if (!output) {
     llvm::errs() << errorMessage << "\n";
