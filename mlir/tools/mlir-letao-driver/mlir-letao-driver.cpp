@@ -56,36 +56,17 @@ static LogicalResult runMLIRPasses(ModuleOp &module,
   // Passes for lowering letao dialect.
   pm.addPass(mlir::letao::createMultiAddTransPass());
 
+  //pm.addPass(mlir::createConvertLinalgToLLVMPass());
+  pm.addPass(mlir::createLowerToLLVMPass());
+ 
+
   return pm.run(module);
 }
 
-int main(int argc, char **argv) {
-
-  mlir::registerAllDialects();
-  mlir::registerAllPasses();
-
-  // Register any pass manager command line options.
-  mlir::registerPassManagerCLOptions();
-  mlir::PassPipelineCLParser passPipeline("", "compiler passes to run");
-
-  // Parse pass names in main to ensure static initialization completed.
-  cl::ParseCommandLineOptions(argc, argv, "MLIR Kevin Dialect driver\n");
-
-  llvm::errs() << "=================driver start================"
-               << "\n";
-
-  MLIRContext context;
-  OpBuilder builder(&context);
-  ModuleOp module;
-
-  std::string errorMessage;
-  SourceMgr sourceMgr;
-  OwningModuleRef moduleRef;
-  module = ModuleOp::create(builder.getUnknownLoc());
-
+SmallString<128> createSource(ModuleOp &module,OpBuilder& builder) {
   auto funcType = builder.getFunctionType({}, {});
   SmallString<128> kernelName;
-  kernelName = "test";
+  kernelName = "test_multiadd";
   auto func = FuncOp::create(builder.getUnknownLoc(), kernelName, funcType);
   module.push_back(func);
 
@@ -117,6 +98,30 @@ int main(int argc, char **argv) {
   auto returnOp =
       builder.create<ReturnOp>(builder.getUnknownLoc(), ValueRange{});
   block->push_back(returnOp);
+  return kernelName;
+}
+int main(int argc, char **argv) {
+
+  mlir::registerAllDialects();
+  mlir::registerAllPasses();
+
+  // Register any pass manager command line options.
+  mlir::registerPassManagerCLOptions();
+  mlir::PassPipelineCLParser passPipeline("", "compiler passes to run");
+
+  // Parse pass names in main to ensure static initialization completed.
+  cl::ParseCommandLineOptions(argc, argv, "MLIR letao Dialect driver\n");
+
+  MLIRContext context;
+  OpBuilder builder(&context);
+  
+  std::string errorMessage;
+  SourceMgr sourceMgr;
+  OwningModuleRef moduleRef;
+  ModuleOp module = ModuleOp::create(builder.getUnknownLoc());
+  
+  SmallString<128> kernelName = createSource(module,builder);
+
 
   if (failed(runMLIRPasses(module, passPipeline, kernelName))) {
     llvm::errs() << "Lowering failed.\n";

@@ -62,7 +62,7 @@ def letao_MovePosOp:
 }
 
 def leto_MultiAddOp:
-Letao_Op<"multiadd">,
+    Letao_Op<"multiadd">,
     Arguments<(ins Variadic<I32>:$inputs)> {
     let summary = "Add values to indices within the memref.";
     let description = [{
