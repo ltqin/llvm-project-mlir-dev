@@ -47,14 +47,15 @@ static cl::opt<std::string> outputFilename("o", cl::desc("Output filename"),
                                            cl::value_desc("filename"),
                                            cl::init("-"));
 // lowering to llvm.
-static cl::opt<bool> loweringToLLVM(
-    "lowering_to_llvm", cl::desc("lower to llvm"),
-    cl::value_desc("lower to llvm"), cl::init(false));
+static cl::opt<bool> loweringToLLVM("lowering_to_llvm",
+                                    cl::desc("lower to llvm"),
+                                    cl::value_desc("lower to llvm"),
+                                    cl::init(false));
 
 // multAddtoAdds
-static cl::opt<bool> multAddtoAdds(
-    "multadd_to_adds", cl::desc("lower to llvm"),
-    cl::value_desc("lower to llvm"), cl::init(false));
+static cl::opt<bool> multAddtoAdds("multadd_to_adds", cl::desc("lower to llvm"),
+                                   cl::value_desc("lower to llvm"),
+                                   cl::init(false));
 static LogicalResult runMLIRPasses(ModuleOp &module,
                                    mlir::PassPipelineCLParser &passPipeline,
                                    StringRef kernelName) {
@@ -72,7 +73,8 @@ static LogicalResult runMLIRPasses(ModuleOp &module,
   return pm.run(module);
 }
 
-SmallString<128> createSource(ModuleOp &module,OpBuilder& builder) {
+SmallString<128> createSource(ModuleOp &module, OpBuilder &builder) {
+  mlir::IntegerType dataType = builder.getI32Type();
   auto funcType = builder.getFunctionType({}, {});
   SmallString<128> kernelName;
   kernelName = "test_multiadd";
@@ -98,15 +100,16 @@ SmallString<128> createSource(ModuleOp &module,OpBuilder& builder) {
   block->push_back(addConstantI32_3);
   block->push_back(addConstantI32_4);
 
-  auto movePosOp = builder.create<letao::MultiAddOp>(
-      builder.getUnknownLoc(), ValueRange{addConstantI32_1, addConstantI32_2,
-                                          addConstantI32_3, addConstantI32_4});
+  auto multiAddOp = builder.create<letao::MultiAddOp>(
+      builder.getUnknownLoc(),dataType,
+      ValueRange{addConstantI32_1, addConstantI32_2,
+                 addConstantI32_3, addConstantI32_4});
 
-  block->push_back(movePosOp);
+  block->push_back(multiAddOp);
 
-  auto returnOp =
-      builder.create<ReturnOp>(builder.getUnknownLoc(), \
-      ValueRange{addConstantI32_1, addConstantI32_2, addConstantI32_3, addConstantI32_4});
+  auto returnOp = builder.create<ReturnOp>(
+      builder.getUnknownLoc(),
+      ValueRange{});
   block->push_back(returnOp);
   return kernelName;
 }
@@ -124,14 +127,13 @@ int main(int argc, char **argv) {
 
   MLIRContext context;
   OpBuilder builder(&context);
-  
+
   std::string errorMessage;
   SourceMgr sourceMgr;
   OwningModuleRef moduleRef;
   ModuleOp module = ModuleOp::create(builder.getUnknownLoc());
-  
-  SmallString<128> kernelName = createSource(module,builder);
 
+  SmallString<128> kernelName = createSource(module, builder);
 
   if (failed(runMLIRPasses(module, passPipeline, kernelName))) {
     llvm::errs() << "Lowering failed.\n";

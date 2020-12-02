@@ -119,10 +119,12 @@ static LogicalResult verify(MovePosOp op) {
 static ParseResult parseMultiAddOp(OpAsmParser &parser, OperationState &result) {
   SmallVector<OpAsmParser::OperandType, 3> ops;
   SmallVector<Type, 3> types;
-
+  Type retType;
   auto ret = parser.parseOperandList(ops, OpAsmParser::Delimiter::Paren) ||
              parser.parseColonTypeList(types)||
-             parser.resolveOperands(ops, types, parser.getNameLoc(), result.operands);
+             parser.resolveOperands(ops, types, parser.getNameLoc(), result.operands) ||
+             parser.parseKeywordType("to", retType) ||
+             parser.addTypeToList(retType, result.types);
 
   return failure(ret);
 }
@@ -130,6 +132,7 @@ static ParseResult parseMultiAddOp(OpAsmParser &parser, OperationState &result) 
 static void print(OpAsmPrinter &p, MultiAddOp op) {
   p << op.getOperationName() << "(" << op.getOperands() << ")";
   p << " : " << op.getOperandTypes();
+  p << " to " << op.getType();
 }
 
 static LogicalResult verify(MultiAddOp op) {
@@ -140,11 +143,6 @@ static LogicalResult verify(MultiAddOp op) {
   
   return success();
 }
-
-/*static void MultiAddOp::build(OpBuilder &odsBuilder, OperationState &odsState, Type output, ValueRange inputs)
-{
-
-}*/
 //===----------------------------------------------------------------------===//
 // TableGen'd op method definitions
 //===----------------------------------------------------------------------===//

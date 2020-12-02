@@ -63,13 +63,12 @@ def letao_MovePosOp:
 
 def leto_MultiAddOp:
     Letao_Op<"multiadd">,
-    Arguments<(ins Variadic<I32>:$inputs)>{
+    Arguments<(ins Variadic<I32>:$inputs)>,
+    Results<(outs I32:$output)>{
     let summary = "Add values to indices within the memref.";
     let description = [{
       The `letao.multiadd` op adds values to indices within the memref.
     }];
-
-    //let results = (outs I32:$output);
 }
 #endif
 
