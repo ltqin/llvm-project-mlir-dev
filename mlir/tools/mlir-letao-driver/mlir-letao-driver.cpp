@@ -46,7 +46,15 @@ using namespace mlir;
 static cl::opt<std::string> outputFilename("o", cl::desc("Output filename"),
                                            cl::value_desc("filename"),
                                            cl::init("-"));
+// lowering to llvm.
+static cl::opt<bool> loweringToLLVM(
+    "lowering_to_llvm", cl::desc("lower to llvm"),
+    cl::value_desc("lower to llvm"), cl::init(false));
 
+// multAddtoAdds
+static cl::opt<bool> multAddtoAdds(
+    "multadd_to_adds", cl::desc("lower to llvm"),
+    cl::value_desc("lower to llvm"), cl::init(false));
 static LogicalResult runMLIRPasses(ModuleOp &module,
                                    mlir::PassPipelineCLParser &passPipeline,
                                    StringRef kernelName) {
@@ -54,11 +62,13 @@ static LogicalResult runMLIRPasses(ModuleOp &module,
   applyPassManagerCLOptions(pm);
 
   // Passes for lowering letao dialect.
-  pm.addPass(mlir::letao::createMultiAddTransPass());
+  if (multAddtoAdds.getValue()) {
+    pm.addPass(mlir::letao::createMultiAddTransPass());
 
-  //pm.addPass(mlir::createConvertLinalgToLLVMPass());
-  pm.addPass(mlir::createLowerToLLVMPass());
- 
+    // pm.addPass(mlir::createConvertLinalgToLLVMPass());
+    if (loweringToLLVM.getValue())
+      pm.addPass(mlir::createLowerToLLVMPass());
+  }
 
   return pm.run(module);
 }
