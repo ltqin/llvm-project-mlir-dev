@@ -28,7 +28,7 @@ class Letao_Op<string mnemonic, list<OpTrait> traits = []> :
     let parser = [{ return ::parse$cppClass(parser, result); }];
     let verifier = [{ return ::verify(*this); }];
 }
-/*
+
 def DotOp: Letao_Op<"dot">{
   let summary = "element-wise multiplication and sum operation";
   let description = [{
@@ -39,7 +39,7 @@ def DotOp: Letao_Op<"dot">{
   let arguments = (ins F64Tensor:$first, F64Tensor:$second);
   let results = (outs F64Tensor);
 }
-*/
+
 def Letao_Conv2DOp :
     Letao_Op<"conv2d">,
     Arguments<(ins MemRefRankOf<[F32, F16, BF16], [4]>:$filter,
@@ -63,11 +63,13 @@ def letao_MovePosOp:
 
 def leto_MultiAddOp:
     Letao_Op<"multiadd">,
-    Arguments<(ins Variadic<I32>:$inputs)> {
+    Arguments<(ins Variadic<I32>:$inputs)>{
     let summary = "Add values to indices within the memref.";
     let description = [{
       The `letao.multiadd` op adds values to indices within the memref.
     }];
+
+    //let results = (outs I32:$output);
 }
 #endif
 

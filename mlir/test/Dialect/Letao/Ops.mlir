@@ -39,6 +39,8 @@ func @test_multiadd() {
   %input4 = constant 4 : i32
   letao.multiadd(%input1, %input2, %input3, %input4) : i32, i32, i32, i32
   return
+  //%output = letao.multiadd(%input1, %input2, %input3, %input4) : i32, i32, i32, i32
+  //return %output
 }
 
 // CHECK-LABEL: func @test_multiadd

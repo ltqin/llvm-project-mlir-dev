@@ -64,11 +64,10 @@ static LogicalResult runMLIRPasses(ModuleOp &module,
   // Passes for lowering letao dialect.
   if (multAddtoAdds.getValue()) {
     pm.addPass(mlir::letao::createMultiAddTransPass());
-
-    // pm.addPass(mlir::createConvertLinalgToLLVMPass());
-    if (loweringToLLVM.getValue())
-      pm.addPass(mlir::createLowerToLLVMPass());
   }
+  // pm.addPass(mlir::createConvertLinalgToLLVMPass());
+  if (loweringToLLVM.getValue())
+    pm.addPass(mlir::createLowerToLLVMPass());
 
   return pm.run(module);
 }
@@ -106,7 +105,8 @@ SmallString<128> createSource(ModuleOp &module,OpBuilder& builder) {
   block->push_back(movePosOp);
 
   auto returnOp =
-      builder.create<ReturnOp>(builder.getUnknownLoc(), ValueRange{});
+      builder.create<ReturnOp>(builder.getUnknownLoc(), \
+      ValueRange{addConstantI32_1, addConstantI32_2, addConstantI32_3, addConstantI32_4});
   block->push_back(returnOp);
   return kernelName;
 }

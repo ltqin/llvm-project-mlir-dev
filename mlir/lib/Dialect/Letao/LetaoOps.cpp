@@ -35,7 +35,7 @@ LetaoDialect::LetaoDialect(::mlir::MLIRContext *context): Dialect(getDialectName
 //===----------------------------------------------------------------------===//
 // DotOp
 //===----------------------------------------------------------------------===//
-/*static ParseResult parseDotOp(OpAsmParser &parser, OperationState &result) {
+static ParseResult parseDotOp(OpAsmParser &parser, OperationState &result) {
     SmallVector<OpAsmParser::OperandType, 2> ops;
     SmallVector<Type, 2> types;
     return failure(
@@ -44,7 +44,15 @@ LetaoDialect::LetaoDialect(::mlir::MLIRContext *context): Dialect(getDialectName
       parser.parseColonTypeList(types) ||
       parser.resolveOperands(ops, types, parser.getNameLoc(), result.operands));
 }
-*/
+static void print(OpAsmPrinter &p, DotOp op) {
+  p << op.getOperationName() << "(" << op.getOperands() << ")";
+  p.printOptionalAttrDict(op.getAttrs());
+  p << " : " << op.getOperandTypes();
+}
+
+static LogicalResult verify(DotOp op) {
+  return success();
+}
 //===----------------------------------------------------------------------===//
 // Conv2DOp
 //===----------------------------------------------------------------------===//
@@ -133,7 +141,10 @@ static LogicalResult verify(MultiAddOp op) {
   return success();
 }
 
+/*static void MultiAddOp::build(OpBuilder &odsBuilder, OperationState &odsState, Type output, ValueRange inputs)
+{
 
+}*/
 //===----------------------------------------------------------------------===//
 // TableGen'd op method definitions
 //===----------------------------------------------------------------------===//
