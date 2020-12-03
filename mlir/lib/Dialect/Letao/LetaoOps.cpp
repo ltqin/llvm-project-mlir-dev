@@ -143,6 +143,29 @@ static LogicalResult verify(MultiAddOp op) {
   
   return success();
 }
+
+//===----------------------------------------------------------------------===//
+// PrintOp
+//===----------------------------------------------------------------------===//
+
+static ParseResult parsePrintOp(OpAsmParser &parser, OperationState &result) {
+  OpAsmParser::OperandType ops;
+  Type type;
+  auto ret = parser.parseOperand(ops) ||
+             parser.parseColonType(type)||
+             parser.resolveOperand(ops, type, result.operands);
+
+  return failure(ret);
+}
+
+static void print(OpAsmPrinter &p, PrintOp op) {
+  p << op.getOperationName() << " " << op.getOperand() << " ";
+  p << " : " << op.getOperand().getType();
+}
+
+static LogicalResult verify(PrintOp op) {
+  return success();
+}
 //===----------------------------------------------------------------------===//
 // TableGen'd op method definitions
 //===----------------------------------------------------------------------===//

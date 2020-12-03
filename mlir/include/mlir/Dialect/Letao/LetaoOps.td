@@ -70,5 +70,16 @@ def leto_MultiAddOp:
       The `letao.multiadd` op adds values to indices within the memref.
     }];
 }
+
+def letao_PrintOp:
+    Letao_Op<"print">,
+    Arguments<(ins I32:$input)>{
+      let summary = "print one i32 number to screem.";
+    let description = [{
+      The `letao.print` op print one i32 number to screem.
+    }];
+
+    //let assemblyFormat = "$input attr-dict `:` type($input)";
+}
 #endif
 

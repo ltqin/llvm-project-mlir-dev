@@ -107,6 +107,9 @@ SmallString<128> createSource(ModuleOp &module, OpBuilder &builder) {
 
   block->push_back(multiAddOp);
 
+  auto printOp = builder.create<letao::PrintOp>(builder.getUnknownLoc(), multiAddOp);
+  block->push_back(printOp);
+
   auto returnOp = builder.create<ReturnOp>(
       builder.getUnknownLoc(),
       ValueRange{});
