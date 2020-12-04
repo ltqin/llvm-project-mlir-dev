@@ -43,6 +43,7 @@ void MultAddTransToAdds::runOnFunction() {
     op.output().replaceAllUsesWith(add);
     op.erase();
   });
+
 }
 
 std::unique_ptr<OperationPass<FuncOp>> mlir::letao::createMultiAddTransPass() {

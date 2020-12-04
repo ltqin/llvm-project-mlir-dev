@@ -12,7 +12,7 @@
 include "mlir/Pass/PassBase.td"
 
 
-def MultAddTransToAdds : FunctionPass<"multiaddtoadds"> {
+def MultAddTransToAdds : FunctionPass<"multiadd_to_adds"> {
   let summary = "multiaddop translate to some adds op";
   let constructor = "mlir::letao::createMultiAddTransPass()";
 }

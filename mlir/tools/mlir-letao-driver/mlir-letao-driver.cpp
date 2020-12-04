@@ -84,7 +84,7 @@ SmallString<128> createSource(ModuleOp &module, OpBuilder &builder) {
   Block *block = func.addEntryBlock();
 
   auto addConstantI32_1 = builder.create<ConstantIntOp>(
-      builder.getUnknownLoc(), 0, builder.getIntegerType(32));
+      builder.getUnknownLoc(), 1, builder.getIntegerType(32));
 
   auto addConstantI32_2 = builder.create<ConstantIntOp>(
       builder.getUnknownLoc(), 10, builder.getIntegerType(32));
@@ -107,7 +107,15 @@ SmallString<128> createSource(ModuleOp &module, OpBuilder &builder) {
 
   block->push_back(multiAddOp);
 
-  auto printOp = builder.create<letao::PrintOp>(builder.getUnknownLoc(), multiAddOp);
+  auto printi32FuncOp = FuncOp::create(
+      builder.getUnknownLoc(), "print_i32",
+      builder.getFunctionType(
+          {dataType}, {}));
+  module.push_back(printi32FuncOp);
+
+  auto printOp =
+      builder.create<CallOp>(builder.getUnknownLoc(), printi32FuncOp,
+                             ValueRange{multiAddOp});
   block->push_back(printOp);
 
   auto returnOp = builder.create<ReturnOp>(
