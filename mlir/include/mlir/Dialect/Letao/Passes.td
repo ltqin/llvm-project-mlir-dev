@@ -17,5 +17,9 @@ def MultAddTransToAdds : FunctionPass<"multiadd_to_adds"> {
   let constructor = "mlir::letao::createMultiAddTransPass()";
 }
 
+def PrintOpLowering : FunctionPass<"printop_lowering"> {
+  let summary = "lowering printOp";
+  let constructor = "mlir::letao::createPrintOpLoweringPass()";
+}
 
 #endif // MLIR_DIALECT_MIOPEN_PASSES

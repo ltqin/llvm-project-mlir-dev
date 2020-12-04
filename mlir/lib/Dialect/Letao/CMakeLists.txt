@@ -14,4 +14,12 @@ target_link_libraries(MLIRLetaoOps
   MLIRIR
   MLIRPass
   LLVMSupport
+  mlir_c_runner_utils_static
+  MLIRAnalysis
+  MLIREDSC
+  MLIRExecutionEngine
+  MLIRLLVMIR
+  MLIRParser
+  MLIRTargetLLVMIR
+  MLIRSupport
   )

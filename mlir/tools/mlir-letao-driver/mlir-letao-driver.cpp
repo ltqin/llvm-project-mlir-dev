@@ -107,7 +107,7 @@ SmallString<128> createSource(ModuleOp &module, OpBuilder &builder) {
 
   block->push_back(multiAddOp);
 
-  auto printi32FuncOp = FuncOp::create(
+/*  auto printi32FuncOp = FuncOp::create(
       builder.getUnknownLoc(), "print_i32",
       builder.getFunctionType(
           {dataType}, {}));
@@ -116,6 +116,8 @@ SmallString<128> createSource(ModuleOp &module, OpBuilder &builder) {
   auto printOp =
       builder.create<CallOp>(builder.getUnknownLoc(), printi32FuncOp,
                              ValueRange{multiAddOp});
+                             */
+  auto printOp = builder.create<letao::PrintOp>(builder.getUnknownLoc(), multiAddOp);
   block->push_back(printOp);
 
   auto returnOp = builder.create<ReturnOp>(

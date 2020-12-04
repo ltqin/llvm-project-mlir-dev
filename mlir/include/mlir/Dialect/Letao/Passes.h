@@ -22,6 +22,7 @@ namespace mlir {
 namespace letao {
 
 std::unique_ptr<OperationPass<FuncOp>> createMultiAddTransPass();
+std::unique_ptr<OperationPass<FuncOp>> createPrintOpLoweringPass();
 } // namespace quant
 } // namespace mlir
 
