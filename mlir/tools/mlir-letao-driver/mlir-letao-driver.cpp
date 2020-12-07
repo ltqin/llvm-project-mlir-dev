@@ -75,53 +75,79 @@ static LogicalResult runMLIRPasses(ModuleOp &module,
 
 SmallString<128> createSource(ModuleOp &module, OpBuilder &builder) {
   mlir::IntegerType dataType = builder.getI32Type();
-  auto funcType = builder.getFunctionType({}, {});
+  
+  auto printi32FuncOp =
+        FuncOp::create(builder.getUnknownLoc(), "print_i32",
+                       builder.getFunctionType({dataType}, {}));
+  module.push_back(printi32FuncOp);
+
+  auto printnewlineFuncOp =
+        FuncOp::create(builder.getUnknownLoc(), "print_newline",
+                       builder.getFunctionType({}, {}));
+  module.push_back(printnewlineFuncOp);
+  // test_multiadd
   SmallString<128> kernelName;
   kernelName = "test_multiadd";
+  auto funcType = builder.getFunctionType(
+      {dataType, dataType, dataType, dataType}, {dataType});
+
   auto func = FuncOp::create(builder.getUnknownLoc(), kernelName, funcType);
   module.push_back(func);
 
   Block *block = func.addEntryBlock();
 
-  auto addConstantI32_1 = builder.create<ConstantIntOp>(
-      builder.getUnknownLoc(), 1, builder.getIntegerType(32));
-
-  auto addConstantI32_2 = builder.create<ConstantIntOp>(
-      builder.getUnknownLoc(), 10, builder.getIntegerType(32));
-
-  auto addConstantI32_3 = builder.create<ConstantIntOp>(
-      builder.getUnknownLoc(), 20, builder.getIntegerType(32));
-
-  auto addConstantI32_4 = builder.create<ConstantIntOp>(
-      builder.getUnknownLoc(), 30, builder.getIntegerType(32));
-
-  block->push_back(addConstantI32_1);
-  block->push_back(addConstantI32_2);
-  block->push_back(addConstantI32_3);
-  block->push_back(addConstantI32_4);
-
+  auto args = block->getArguments();
   auto multiAddOp = builder.create<letao::MultiAddOp>(
-      builder.getUnknownLoc(),dataType,
-      ValueRange{addConstantI32_1, addConstantI32_2,
-                 addConstantI32_3, addConstantI32_4});
-
+      builder.getUnknownLoc(), dataType, ValueRange(args));
   block->push_back(multiAddOp);
 
-  auto printi32FuncOp = FuncOp::create(
-      builder.getUnknownLoc(), "print_i32",
-      builder.getFunctionType(
-          {dataType}, {}));
-  module.push_back(printi32FuncOp);
-
-  auto printOp =
-      builder.create<CallOp>(builder.getUnknownLoc(), printi32FuncOp,
-                             ValueRange{multiAddOp});
-  block->push_back(printOp);
-
-  auto returnOp = builder.create<ReturnOp>(
-      builder.getUnknownLoc(),
-      ValueRange{});
+  auto returnOp =
+      builder.create<ReturnOp>(builder.getUnknownLoc(), ValueRange{multiAddOp});
   block->push_back(returnOp);
+
+  //main
+  {
+    auto mainType = builder.getFunctionType({}, {});
+    auto main = FuncOp::create(builder.getUnknownLoc(), "main", mainType);
+    module.push_back(main);
+    Block *mainBlock = main.addEntryBlock();
+
+    auto addConstantI32_1 = builder.create<ConstantIntOp>(
+        builder.getUnknownLoc(), 1, builder.getIntegerType(32));
+
+    auto addConstantI32_2 = builder.create<ConstantIntOp>(
+        builder.getUnknownLoc(), 10, builder.getIntegerType(32));
+
+    auto addConstantI32_3 = builder.create<ConstantIntOp>(
+        builder.getUnknownLoc(), 20, builder.getIntegerType(32));
+
+    auto addConstantI32_4 = builder.create<ConstantIntOp>(
+        builder.getUnknownLoc(), 30, builder.getIntegerType(32));
+
+    mainBlock->push_back(addConstantI32_1);
+    mainBlock->push_back(addConstantI32_2);
+    mainBlock->push_back(addConstantI32_3);
+    mainBlock->push_back(addConstantI32_4);
+
+    auto calltestOp =
+        builder.create<CallOp>(builder.getUnknownLoc(), func,
+                               ValueRange{addConstantI32_1, addConstantI32_2,
+                                          addConstantI32_3, addConstantI32_4});
+    mainBlock->push_back(calltestOp);
+
+    auto printOp = builder.create<CallOp>(builder.getUnknownLoc(),
+                                          printi32FuncOp, ValueRange(calltestOp.getResults()));
+    mainBlock->push_back(printOp);
+    
+    auto printNewLineOp = builder.create<CallOp>(builder.getUnknownLoc(),
+                                          printnewlineFuncOp, ValueRange{});
+    mainBlock->push_back(printNewLineOp);
+
+    auto mainReturnOp =
+        builder.create<ReturnOp>(builder.getUnknownLoc(), ValueRange{});
+    mainBlock->push_back(mainReturnOp);
+
+  }
   return kernelName;
 }
 int main(int argc, char **argv) {
