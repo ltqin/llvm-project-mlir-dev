@@ -28,16 +28,22 @@ void MultAddTransToAdds::runOnFunction() {
   FuncOp func = getFunction();
 
   func.walk([&](letao::MultiAddOp op) {
-    // llvm::errs() << "Hello: ";
-    // llvm::errs().write_escaped(op.getName()) << '\n';
     auto loc = op.getLoc();
     auto operands = op.getOperands();
-   
+    bool bIsInteger = op.getType().isa<IntegerType>();
 
     OpBuilder b(op.getOperation());
-    Value add = b.create<AddIOp>(loc, op.getOperand(0), op.getOperand(1));
+    Value add;
+    if (bIsInteger)
+      add = b.create<AddIOp>(loc, op.getOperand(0), op.getOperand(1));
+    else
+      add = b.create<AddFOp>(loc, op.getOperand(0), op.getOperand(1));
+    
     for (unsigned i = 2; i < operands.size(); i++) {
-      add = b.create<AddIOp>(loc, add, op.getOperand(i));
+      if (bIsInteger)
+        add = b.create<AddIOp>(loc, add, op.getOperand(i));
+      else
+        add = b.create<AddFOp>(loc, add, op.getOperand(i));
     }
     //must do that, so flow operation can use return value
     op.output().replaceAllUsesWith(add);
