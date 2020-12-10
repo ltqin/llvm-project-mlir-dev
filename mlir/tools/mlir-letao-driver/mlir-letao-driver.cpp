@@ -46,16 +46,17 @@ using namespace mlir;
 static cl::opt<std::string> outputFilename("o", cl::desc("Output filename"),
                                            cl::value_desc("filename"),
                                            cl::init("-"));
-// lowering to llvm.
-static cl::opt<bool> loweringToLLVM("lowering_to_llvm",
-                                    cl::desc("lower to llvm"),
-                                    cl::value_desc("lower to llvm"),
-                                    cl::init(false));
 
-// multAddtoAdds
-static cl::opt<bool> multAddtoAdds("multadd_to_adds", cl::desc("lower to llvm"),
-                                   cl::value_desc("lower to llvm"),
+// lowering to llvm
+static cl::opt<bool> lowering_to_llvm("lowering-to-llvm", cl::desc("lower to llvm"),
+                                   cl::value_desc("lowering-to-llvm"),
                                    cl::init(false));
+
+static cl::opt<std::string> data_format("data_format",
+                                         cl::desc("int, float, or bf16"),
+                                         cl::value_desc("int, float, or bf16"),
+                                         cl::init("int"));
+  
 static LogicalResult runMLIRPasses(ModuleOp &module,
                                    mlir::PassPipelineCLParser &passPipeline,
                                    StringRef kernelName) {
@@ -63,18 +64,19 @@ static LogicalResult runMLIRPasses(ModuleOp &module,
   applyPassManagerCLOptions(pm);
 
   // Passes for lowering letao dialect.
-  if (multAddtoAdds.getValue()) {
+  if (lowering_to_llvm.getValue()) {
     pm.addPass(mlir::letao::createMultiAddTransPass());
-  }
-  // pm.addPass(mlir::createConvertLinalgToLLVMPass());
-  if (loweringToLLVM.getValue())
     pm.addPass(mlir::createLowerToLLVMPass());
+  }
+  // Build the provided pipeline.
+  if (failed(passPipeline.addToPipeline(pm)))
+    return failure();
 
   return pm.run(module);
 }
-
-SmallString<128> createSource(ModuleOp &module, OpBuilder &builder) {
-  mlir::IntegerType dataType = builder.getI32Type();
+template<class T,class ConstantTypeOp,class CastType>
+SmallString<128> createSource(ModuleOp &module, OpBuilder &builder,T& dataType) {
+ // auto dataType = (1=1?builder.getI32Type():builder.getF32Type());
   
   auto printi32FuncOp =
         FuncOp::create(builder.getUnknownLoc(), "print_i32",
@@ -85,7 +87,7 @@ SmallString<128> createSource(ModuleOp &module, OpBuilder &builder) {
         FuncOp::create(builder.getUnknownLoc(), "print_newline",
                        builder.getFunctionType({}, {}));
   module.push_back(printnewlineFuncOp);
-  // test_multiadd
+  // test_multiaddy
   SmallString<128> kernelName;
   kernelName = "test_multiadd";
   auto funcType = builder.getFunctionType(
@@ -111,18 +113,18 @@ SmallString<128> createSource(ModuleOp &module, OpBuilder &builder) {
     auto main = FuncOp::create(builder.getUnknownLoc(), "main", mainType);
     module.push_back(main);
     Block *mainBlock = main.addEntryBlock();
+ 
+    auto addConstantI32_1 = builder.create<ConstantTypeOp>(
+        builder.getUnknownLoc(), CastType((float)1), dataType);
 
-    auto addConstantI32_1 = builder.create<ConstantIntOp>(
-        builder.getUnknownLoc(), 1, builder.getIntegerType(32));
+    auto addConstantI32_2 = builder.create<ConstantTypeOp>(
+        builder.getUnknownLoc(), CastType((float)10), dataType);
 
-    auto addConstantI32_2 = builder.create<ConstantIntOp>(
-        builder.getUnknownLoc(), 10, builder.getIntegerType(32));
+    auto addConstantI32_3 = builder.create<ConstantTypeOp>(
+        builder.getUnknownLoc(), CastType((float)20), dataType);
 
-    auto addConstantI32_3 = builder.create<ConstantIntOp>(
-        builder.getUnknownLoc(), 20, builder.getIntegerType(32));
-
-    auto addConstantI32_4 = builder.create<ConstantIntOp>(
-        builder.getUnknownLoc(), 30, builder.getIntegerType(32));
+    auto addConstantI32_4 = builder.create<ConstantTypeOp>(
+        builder.getUnknownLoc(), CastType((float)30), dataType);
 
     mainBlock->push_back(addConstantI32_1);
     mainBlock->push_back(addConstantI32_2);
@@ -170,7 +172,19 @@ int main(int argc, char **argv) {
   OwningModuleRef moduleRef;
   ModuleOp module = ModuleOp::create(builder.getUnknownLoc());
 
-  SmallString<128> kernelName = createSource(module, builder);
+  SmallString<128> kernelName;
+  if (data_format == "int") {
+    auto dataType = builder.getI64Type();
+    kernelName = createSource<decltype(dataType), ConstantIntOp, int64_t>(
+        module, builder, dataType);
+  } else if (data_format == "float") {
+    auto dataType = builder.getF32Type();
+    kernelName = createSource<decltype(dataType), ConstantFloatOp, APFloat>(
+        module, builder, dataType);
+  } else {
+    llvm::errs() << "data_format error!" << "\n";
+    exit(1);
+  }
 
   if (failed(runMLIRPasses(module, passPipeline, kernelName))) {
     llvm::errs() << "Lowering failed.\n";
