@@ -56,7 +56,11 @@ static cl::opt<std::string> data_format("data_format",
                                          cl::desc("int, float, or bf16"),
                                          cl::value_desc("int, float, or bf16"),
                                          cl::init("int"));
-  
+static cl::opt<std::string> real_params("real_params",
+                                         cl::desc("the parameters for add,eg: 1,10,20 mean sum(1+20+30)"),
+                                         cl::value_desc("1,20,30 mean sum(1+20+30)"),
+                                         cl::init("1,20,30"));
+
 static LogicalResult runMLIRPasses(ModuleOp &module,
                                    mlir::PassPipelineCLParser &passPipeline,
                                    StringRef kernelName) {
@@ -74,10 +78,19 @@ static LogicalResult runMLIRPasses(ModuleOp &module,
 
   return pm.run(module);
 }
-template<class T,class ConstantTypeOp,class CastType>
-SmallString<128> createSource(ModuleOp &module, OpBuilder &builder,T& dataType) {
- // auto dataType = (1=1?builder.getI32Type():builder.getF32Type());
-  
+std::vector<std::string> split(const std::string& s, char delimiter)
+{
+   std::vector<std::string> tokens;
+   std::string token;
+   std::istringstream tokenStream(s);
+   while (std::getline(tokenStream, token, delimiter))
+   {
+      tokens.push_back(token);
+   }
+   return tokens;
+}
+template<class DataType,class ConstantTypeOp,class RealType,class CastType>
+SmallString<128> createSource(ModuleOp &module, OpBuilder &builder,DataType& dataType) {
   auto printi32FuncOp =
         FuncOp::create(builder.getUnknownLoc(), "print_i32",
                        builder.getFunctionType({dataType}, {}));
@@ -87,11 +100,23 @@ SmallString<128> createSource(ModuleOp &module, OpBuilder &builder,T& dataType) 
         FuncOp::create(builder.getUnknownLoc(), "print_newline",
                        builder.getFunctionType({}, {}));
   module.push_back(printnewlineFuncOp);
+
+  //split parameters
+  std::vector<std::string> parameters = split(real_params, ',');
+  if(parameters.size() < 2){
+    llvm::errs() << "real_params error!" << "\n";
+    exit(1);
+  }
   // test_multiaddy
   SmallString<128> kernelName;
   kernelName = "test_multiadd";
+  std::vector<DataType> types;
+  for(unsigned i = 0; i < parameters.size(); i++){
+    types.push_back(dataType);
+  }
+  ArrayRef<mlir::Type> arrayRef(types.data(),types.size());
   auto funcType = builder.getFunctionType(
-      {dataType, dataType, dataType, dataType}, {dataType});
+      arrayRef, {dataType});
 
   auto func = FuncOp::create(builder.getUnknownLoc(), kernelName, funcType);
   module.push_back(func);
@@ -115,16 +140,16 @@ SmallString<128> createSource(ModuleOp &module, OpBuilder &builder,T& dataType) 
     Block *mainBlock = main.addEntryBlock();
  
     auto addConstantI32_1 = builder.create<ConstantTypeOp>(
-        builder.getUnknownLoc(), CastType((float)1), dataType);
+        builder.getUnknownLoc(), RealType((CastType)1), dataType);
 
     auto addConstantI32_2 = builder.create<ConstantTypeOp>(
-        builder.getUnknownLoc(), CastType((float)10), dataType);
+        builder.getUnknownLoc(), RealType((CastType)10), dataType);
 
     auto addConstantI32_3 = builder.create<ConstantTypeOp>(
-        builder.getUnknownLoc(), CastType((float)20), dataType);
+        builder.getUnknownLoc(), RealType((CastType)20), dataType);
 
     auto addConstantI32_4 = builder.create<ConstantTypeOp>(
-        builder.getUnknownLoc(), CastType((float)30), dataType);
+        builder.getUnknownLoc(), RealType((CastType)30), dataType);
 
     mainBlock->push_back(addConstantI32_1);
     mainBlock->push_back(addConstantI32_2);
@@ -174,14 +199,19 @@ int main(int argc, char **argv) {
 
   SmallString<128> kernelName;
   if (data_format == "int") {
-    auto dataType = builder.getI64Type();
-    kernelName = createSource<decltype(dataType), ConstantIntOp, int64_t>(
+    auto dataType = builder.getI32Type();
+    kernelName = createSource<decltype(dataType), ConstantIntOp, int64_t, int>(
         module, builder, dataType);
   } else if (data_format == "float") {
     auto dataType = builder.getF32Type();
-    kernelName = createSource<decltype(dataType), ConstantFloatOp, APFloat>(
+    kernelName = createSource<decltype(dataType), ConstantFloatOp, APFloat, float>(
         module, builder, dataType);
-  } else {
+  } else if (data_format == "bf16") {
+    auto dataType = builder.getBF16Type();
+    kernelName = createSource<decltype(dataType), ConstantFloatOp, APFloat, float>(
+        module, builder, dataType);
+  } 
+  else {
     llvm::errs() << "data_format error!" << "\n";
     exit(1);
   }
