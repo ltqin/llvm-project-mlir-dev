@@ -114,9 +114,9 @@ SmallString<128> createSource(ModuleOp &module, OpBuilder &builder,DataType& dat
   for(unsigned i = 0; i < parameters.size(); i++){
     types.push_back(dataType);
   }
-  ArrayRef<mlir::Type> arrayRef(types.data(),types.size());
+  ArrayRef<mlir::Type> arrayType(types.data(),types.size());
   auto funcType = builder.getFunctionType(
-      arrayRef, {dataType});
+      arrayType, {dataType});
 
   auto func = FuncOp::create(builder.getUnknownLoc(), kernelName, funcType);
   module.push_back(func);
@@ -138,8 +138,14 @@ SmallString<128> createSource(ModuleOp &module, OpBuilder &builder,DataType& dat
     auto main = FuncOp::create(builder.getUnknownLoc(), "main", mainType);
     module.push_back(main);
     Block *mainBlock = main.addEntryBlock();
- 
-    auto addConstantI32_1 = builder.create<ConstantTypeOp>(
+    SmallVector<Value,4> values;
+    for(unsigned i = 0; i < parameters.size(); i++){
+      auto constantData = builder.create<ConstantTypeOp>(
+        builder.getUnknownLoc(), RealType((CastType)std::atof(parameters[i].c_str())), dataType);
+      values.push_back(constantData);
+      mainBlock->push_back(constantData);
+    }
+    /*auto addConstantI32_1 = builder.create<ConstantTypeOp>(
         builder.getUnknownLoc(), RealType((CastType)1), dataType);
 
     auto addConstantI32_2 = builder.create<ConstantTypeOp>(
@@ -154,12 +160,17 @@ SmallString<128> createSource(ModuleOp &module, OpBuilder &builder,DataType& dat
     mainBlock->push_back(addConstantI32_1);
     mainBlock->push_back(addConstantI32_2);
     mainBlock->push_back(addConstantI32_3);
-    mainBlock->push_back(addConstantI32_4);
-
+    mainBlock->push_back(addConstantI32_4);*/
+    ArrayRef<ConstantTypeOp> arrayValues(values.data(),values.size());
     auto calltestOp =
+        builder.create<CallOp>(builder.getUnknownLoc(), func,
+                               values);
+    
+    /*auto calltestOp =
         builder.create<CallOp>(builder.getUnknownLoc(), func,
                                ValueRange{addConstantI32_1, addConstantI32_2,
                                           addConstantI32_3, addConstantI32_4});
+    */                                      
     mainBlock->push_back(calltestOp);
 
     auto printOp = builder.create<CallOp>(builder.getUnknownLoc(),
