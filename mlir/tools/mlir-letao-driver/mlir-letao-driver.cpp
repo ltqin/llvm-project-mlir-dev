@@ -99,6 +99,11 @@ SmallString<128> createSource(ModuleOp &module, OpBuilder &builder,DataType& dat
                        builder.getFunctionType({dataType}, {}));
   module.push_back(printi32FuncOp);
 
+  auto printf32FuncOp =
+        FuncOp::create(builder.getUnknownLoc(), "print_f32",
+                       builder.getFunctionType({dataType}, {}));
+  module.push_back(printf32FuncOp);
+
   auto printnewlineFuncOp =
         FuncOp::create(builder.getUnknownLoc(), "print_newline",
                        builder.getFunctionType({}, {}));
@@ -151,15 +156,25 @@ SmallString<128> createSource(ModuleOp &module, OpBuilder &builder,DataType& dat
                                values);
                                    
     mainBlock->push_back(calltestOp);
-
-    auto printOp = builder.create<CallOp>(builder.getUnknownLoc(),
-                                          printi32FuncOp, ValueRange(calltestOp.getResults()));
-    mainBlock->push_back(printOp);
     
+    //print
+    bool bIsInteger = ((mlir::Type)dataType).isa<mlir::IntegerType>();
+    if (bIsInteger) {
+      auto printOp =
+          builder.create<CallOp>(builder.getUnknownLoc(), printi32FuncOp,
+                                 ValueRange(calltestOp.getResults()));
+      mainBlock->push_back(printOp);
+    } else {
+      auto printOp =
+          builder.create<CallOp>(builder.getUnknownLoc(), printf32FuncOp,
+                                 ValueRange(calltestOp.getResults()));
+      mainBlock->push_back(printOp);
+    }
+
     auto printNewLineOp = builder.create<CallOp>(builder.getUnknownLoc(),
                                           printnewlineFuncOp, ValueRange{});
     mainBlock->push_back(printNewLineOp);
-
+    //return
     auto mainReturnOp =
         builder.create<ReturnOp>(builder.getUnknownLoc(), ValueRange{});
     mainBlock->push_back(mainReturnOp);
