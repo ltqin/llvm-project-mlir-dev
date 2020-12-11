@@ -92,8 +92,9 @@ std::vector<std::string> split(const std::string& s, char delimiter)
    }
    return tokens;
 }
-template<class DataType,class ConstantTypeOp,class RealType,class CastType>
-SmallString<128> createSource(ModuleOp &module, OpBuilder &builder,DataType& dataType) {
+
+template<class DataType,class ConstantTypeOp,class RealType>
+SmallString<128> createSource(ModuleOp &module, OpBuilder &builder,DataType& dataType,RealType f(std::string&)) {
   auto printi32FuncOp =
         FuncOp::create(builder.getUnknownLoc(), "print_i32",
                        builder.getFunctionType({dataType}, {}));
@@ -147,7 +148,7 @@ SmallString<128> createSource(ModuleOp &module, OpBuilder &builder,DataType& dat
     llvm::SmallVector<mlir::Value,4> values;
     for(unsigned i = 0; i < parameters.size(); i++){
       auto constantData = builder.create<ConstantTypeOp>(
-        builder.getUnknownLoc(), RealType((CastType)std::atof(parameters[i].c_str())), dataType);
+        builder.getUnknownLoc(), f(parameters[i]), dataType);
       values.push_back(constantData);
       mainBlock->push_back(constantData);
     }
@@ -205,16 +206,22 @@ int main(int argc, char **argv) {
   SmallString<128> kernelName;
   if (data_format == "int") {
     auto dataType = builder.getI32Type();
-    kernelName = createSource<decltype(dataType), ConstantIntOp, int64_t, int>(
-        module, builder, dataType);
+    kernelName = createSource<decltype(dataType), ConstantIntOp, int64_t>(
+        module, builder, dataType,[](std::string& str)->int64_t{
+          return std::atoi(str.c_str());
+        });
   } else if (data_format == "float") {
     auto dataType = builder.getF32Type();
-    kernelName = createSource<decltype(dataType), ConstantFloatOp, APFloat, float>(
-        module, builder, dataType);
+    kernelName = createSource<decltype(dataType), ConstantFloatOp, APFloat>(
+        module, builder, dataType,[](std::string& str)->APFloat{
+          return APFloat(APFloatBase::IEEEsingle(),StringRef(str.c_str()));
+        });
   } else if (data_format == "bf16") {
     auto dataType = builder.getBF16Type();
-    kernelName = createSource<decltype(dataType), ConstantFloatOp, APFloat, float>(
-        module, builder, dataType);
+    kernelName = createSource<decltype(dataType), ConstantFloatOp, APFloat>(
+        module, builder, dataType,[](std::string& str)->APFloat{
+          return  APFloat(APFloatBase::BFloat(),StringRef(str.c_str()));
+        });
   } 
   else {
     llvm::errs() << "data_format error!" << "\n";
