@@ -24,6 +24,7 @@
 #include "mlir/IR/Operation.h"
 #include "mlir/IR/StandardTypes.h"
 #include "mlir/IR/Types.h"
+#include "mlir/IR/Value.h"
 #include "mlir/InitAllDialects.h"
 #include "mlir/InitAllPasses.h"
 #include "mlir/Parser.h"
@@ -39,6 +40,8 @@
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Support/ToolOutputFile.h"
 #include "llvm/Support/raw_ostream.h"
+#include "llvm/ADT/Sequence.h"
+#include "llvm/ADT/SmallVector.h"
 
 using namespace llvm;
 using namespace mlir;
@@ -110,13 +113,12 @@ SmallString<128> createSource(ModuleOp &module, OpBuilder &builder,DataType& dat
   // test_multiaddy
   SmallString<128> kernelName;
   kernelName = "test_multiadd";
-  std::vector<DataType> types;
+  llvm::SmallVector<mlir::Type,4> types;
   for(unsigned i = 0; i < parameters.size(); i++){
     types.push_back(dataType);
   }
-  ArrayRef<mlir::Type> arrayType(types.data(),types.size());
   auto funcType = builder.getFunctionType(
-      arrayType, {dataType});
+      types, {dataType});
 
   auto func = FuncOp::create(builder.getUnknownLoc(), kernelName, funcType);
   module.push_back(func);
@@ -131,46 +133,23 @@ SmallString<128> createSource(ModuleOp &module, OpBuilder &builder,DataType& dat
   auto returnOp =
       builder.create<ReturnOp>(builder.getUnknownLoc(), ValueRange{multiAddOp});
   block->push_back(returnOp);
-
   //main
   {
     auto mainType = builder.getFunctionType({}, {});
     auto main = FuncOp::create(builder.getUnknownLoc(), "main", mainType);
     module.push_back(main);
     Block *mainBlock = main.addEntryBlock();
-    SmallVector<Value,4> values;
+    llvm::SmallVector<mlir::Value,4> values;
     for(unsigned i = 0; i < parameters.size(); i++){
       auto constantData = builder.create<ConstantTypeOp>(
         builder.getUnknownLoc(), RealType((CastType)std::atof(parameters[i].c_str())), dataType);
       values.push_back(constantData);
       mainBlock->push_back(constantData);
     }
-    /*auto addConstantI32_1 = builder.create<ConstantTypeOp>(
-        builder.getUnknownLoc(), RealType((CastType)1), dataType);
-
-    auto addConstantI32_2 = builder.create<ConstantTypeOp>(
-        builder.getUnknownLoc(), RealType((CastType)10), dataType);
-
-    auto addConstantI32_3 = builder.create<ConstantTypeOp>(
-        builder.getUnknownLoc(), RealType((CastType)20), dataType);
-
-    auto addConstantI32_4 = builder.create<ConstantTypeOp>(
-        builder.getUnknownLoc(), RealType((CastType)30), dataType);
-
-    mainBlock->push_back(addConstantI32_1);
-    mainBlock->push_back(addConstantI32_2);
-    mainBlock->push_back(addConstantI32_3);
-    mainBlock->push_back(addConstantI32_4);*/
-    ArrayRef<ConstantTypeOp> arrayValues(values.data(),values.size());
     auto calltestOp =
         builder.create<CallOp>(builder.getUnknownLoc(), func,
                                values);
-    
-    /*auto calltestOp =
-        builder.create<CallOp>(builder.getUnknownLoc(), func,
-                               ValueRange{addConstantI32_1, addConstantI32_2,
-                                          addConstantI32_3, addConstantI32_4});
-    */                                      
+                                   
     mainBlock->push_back(calltestOp);
 
     auto printOp = builder.create<CallOp>(builder.getUnknownLoc(),

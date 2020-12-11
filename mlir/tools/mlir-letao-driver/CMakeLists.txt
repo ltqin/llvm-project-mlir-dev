@@ -21,4 +21,9 @@ target_link_libraries(mlir-letao-driver PRIVATE
   MLIRParser
   MLIRTargetLLVMIR
   MLIRSupport
+  MLIRCallInterfaces
+  MLIRPass
+  MLIRSideEffectInterfaces
+  MLIRTransforms
+  MLIRStandardOps
   )
