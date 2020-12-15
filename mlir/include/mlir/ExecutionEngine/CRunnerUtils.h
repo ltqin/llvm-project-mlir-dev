@@ -210,5 +210,7 @@ extern "C" MLIR_CRUNNERUTILS_EXPORT void print_close();
 extern "C" MLIR_CRUNNERUTILS_EXPORT void print_comma();
 extern "C" MLIR_CRUNNERUTILS_EXPORT void print_newline();
 
+extern "C" MLIR_CRUNNERUTILS_EXPORT uint16_t  float_conver_to_bf16(const float& value);
+extern "C" MLIR_CRUNNERUTILS_EXPORT float     bf16_conver_to_float(const uint16_t& value);
 #endif // EXECUTIONENGINE_CRUNNERUTILS_H_
 

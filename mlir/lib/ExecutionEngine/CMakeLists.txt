@@ -7,6 +7,7 @@ set(LLVM_OPTIONAL_SOURCES
   RunnerUtils.cpp
   OptUtils.cpp
   JitRunner.cpp
+  BF16Conver.cpp
   )
 
 add_mlir_library(MLIRExecutionEngine
