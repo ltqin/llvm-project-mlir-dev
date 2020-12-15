@@ -110,6 +110,19 @@ SmallString<128> createSource(ModuleOp &module, OpBuilder &builder,DataType& dat
                        builder.getFunctionType({}, {}));
   module.push_back(printnewlineFuncOp);
 
+  auto floatType = builder.getF32Type();
+  auto ushortType = builder.getIntegerType(16,false);
+
+  auto floatConvertoBF16Op =
+        FuncOp::create(builder.getUnknownLoc(), "float_conver_to_bf16",
+                       builder.getFunctionType({floatType}, {ushortType}));
+  module.push_back(floatConvertoBF16Op);
+
+  auto bf16ConvertoFloatOp =
+        FuncOp::create(builder.getUnknownLoc(), "float_conver_to_bf16",
+                       builder.getFunctionType({ushortType}, {floatType}));
+  module.push_back(bf16ConvertoFloatOp);
+
   //split parameters
   std::vector<std::string> parameters = split(real_params, ',');
   if(parameters.size() < 2){
