@@ -244,5 +244,6 @@ int main(int argc, char **argv) {
   module.print(output->os());
   output->keep();
 
+  llvm::errs() <<"\n";
   return 0;
 }
