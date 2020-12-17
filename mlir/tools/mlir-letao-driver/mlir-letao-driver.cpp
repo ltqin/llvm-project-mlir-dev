@@ -46,6 +46,9 @@
 using namespace llvm;
 using namespace mlir;
 
+static cl::opt<std::string> inputFilename(llvm::cl::Positional,
+                                          llvm::cl::desc("<input file>"),
+                                          llvm::cl::init("-"));
 static cl::opt<std::string> outputFilename("o", cl::desc("Output filename"),
                                            cl::value_desc("filename"),
                                            cl::init("-"));
@@ -119,7 +122,7 @@ SmallString<128> createSource(ModuleOp &module, OpBuilder &builder,DataType& dat
   module.push_back(floatConvertoBF16Op);
 
   auto bf16ConvertoFloatOp =
-        FuncOp::create(builder.getUnknownLoc(), "float_conver_to_bf16",
+        FuncOp::create(builder.getUnknownLoc(), "bf16_conver_to_float",
                        builder.getFunctionType({ushortType}, {floatType}));
   module.push_back(bf16ConvertoFloatOp);
 
