@@ -609,9 +609,9 @@ static FuncOp createVerifyFuncOp(ModuleOp &module, OpBuilder &builder,
 
   return verifyFuncOp;
 }
-
+template<class DataType>
 static FuncOp launchGPUConvolution(ModuleOp &module, OpBuilder &builder,
-                                   mlir::FloatType dataType,
+                                   const DataType& dataType,
                                    mlir::AllocOp &filterHostAllocOp,
                                    mlir::AllocOp &inputHostAllocOp,
                                    mlir::AllocOp &outputHostAllocOp) {
@@ -797,11 +797,11 @@ static FuncOp launchGPUConvolution(ModuleOp &module, OpBuilder &builder,
 
   return gpuConvFuncOp;
 }
-
+template<class DataType>
 static LogicalResult populateHostHarnessLogic(ModuleOp &module,
                                               OpBuilder &builder,
                                               MLIRContext &context,
-                                              mlir::FloatType dataType) {
+                                              const DataType& dataType) {
   // Construct main function.
   auto func = FuncOp::create(builder.getUnknownLoc(), "main",
                              builder.getFunctionType({}, {}));
@@ -964,11 +964,11 @@ static LogicalResult populateHostHarnessLogic(ModuleOp &module,
 
   return success();
 }
-
+template<class DataType>
 static LogicalResult populateValidationLogic(ModuleOp &module,
                                              OpBuilder &builder,
                                              MLIRContext &context,
-                                             mlir::FloatType dataType) {
+                                             const DataType& dataType) {
   // Construct main function.
   auto func = FuncOp::create(builder.getUnknownLoc(), "main",
                              builder.getFunctionType({}, {}));
@@ -1279,57 +1279,10 @@ static LogicalResult runMLIRPasses(ModuleOp &module, mlir::PassPipelineCLParser 
   return pm.run(module);
 }
 
-int main(int argc, char **argv) {
-  mlir::registerAllDialects();
-  mlir::registerAllPasses();
-  InitLLVM y(argc, argv);
-
-  // Register any pass manager command line options.
-  mlir::registerPassManagerCLOptions();
-  mlir::PassPipelineCLParser passPipeline("", "compiler passes to run");
-
-  // Parse pass names in main to ensure static initialization completed.
-  cl::ParseCommandLineOptions(argc, argv, "MLIR MIOpen Dialect driver\n");
-
-  MLIRContext context;
-  OpBuilder builder(&context);
-  ModuleOp module;
-
-  std::string errorMessage;
-  SourceMgr sourceMgr;
-  OwningModuleRef moduleRef;
-  if (useHostHarness.getValue()) {
-    // Set up the input file.
-    auto file = openInputFile(inputFilename, &errorMessage);
-    if (!file) {
-      llvm::errs() << errorMessage << "\n";
-      exit(1);
-    }
-
-    // Parse the input file.
-    sourceMgr.AddNewSourceBuffer(std::move(file), SMLoc());
-    moduleRef = parseSourceFile(sourceMgr, &context);
-    if (!moduleRef) {
-      llvm::errs() << "Parse host harness " << inputFilename << " failed.\n";
-      exit(1);
-    }
-    module = moduleRef.get();
-  } else {
-    // Construct a new ModuleOp.
-    module = ModuleOp::create(builder.getUnknownLoc());
-  }
-
-  // Determine data type.
-  mlir::FloatType dataType = builder.getF32Type();
-  if (tensorDataType == "f32") {
-    dataType = builder.getF32Type();
-  } else if (tensorDataType == "f16") {
-    dataType = builder.getF16Type();
-  } else if (tensorDataType == "bf16") {
-    dataType = builder.getBF16Type();
-  }
-
-  // Populate the module.
+template<class DataType>
+void CreateSource(MLIRContext& context,ModuleOp& module,OpBuilder& builder,mlir::PassPipelineCLParser& passPipeline,const DataType& dataType)
+{
+ // Populate the module.
   SmallString<128> kernelName;
   populateDefaults();
   if (failed(populateConvolutionLogic(
@@ -1380,6 +1333,62 @@ int main(int argc, char **argv) {
     }
   }
 
+}
+int main(int argc, char **argv) {
+  mlir::registerAllDialects();
+  mlir::registerAllPasses();
+  InitLLVM y(argc, argv);
+
+  // Register any pass manager command line options.
+  mlir::registerPassManagerCLOptions();
+  mlir::PassPipelineCLParser passPipeline("", "compiler passes to run");
+
+  // Parse pass names in main to ensure static initialization completed.
+  cl::ParseCommandLineOptions(argc, argv, "MLIR MIOpen Dialect driver\n");
+
+  MLIRContext context;
+  OpBuilder builder(&context);
+  ModuleOp module;
+
+  std::string errorMessage;
+  SourceMgr sourceMgr;
+  OwningModuleRef moduleRef;
+  if (useHostHarness.getValue()) {
+    // Set up the input file.
+    auto file = openInputFile(inputFilename, &errorMessage);
+    if (!file) {
+      llvm::errs() << errorMessage << "\n";
+      exit(1);
+    }
+
+    // Parse the input file.
+    sourceMgr.AddNewSourceBuffer(std::move(file), SMLoc());
+    moduleRef = parseSourceFile(sourceMgr, &context);
+    if (!moduleRef) {
+      llvm::errs() << "Parse host harness " << inputFilename << " failed.\n";
+      exit(1);
+    }
+    module = moduleRef.get();
+  } else {
+    // Construct a new ModuleOp.
+    module = ModuleOp::create(builder.getUnknownLoc());
+  }
+
+  // Determine data type.
+  //mlir::FloatType dataType = builder.getF32Type();
+  if (tensorDataType == "f32") {
+    auto dataType = builder.getF32Type();
+    CreateSource(context,module,builder,passPipeline,dataType);
+  } else if (tensorDataType == "f16") {
+    auto dataType = builder.getF16Type();
+    CreateSource(context,module,builder,passPipeline,dataType);
+  } else if (tensorDataType == "bf16") {
+    auto dataType = builder.getIntegerType(16);
+    CreateSource(context,module,builder,passPipeline,dataType);
+  }
+  
+ 
+ 
   // Set up the output file.
   auto output = openOutputFile(outputFilename, &errorMessage);
   if (!output) {

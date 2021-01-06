@@ -150,11 +150,26 @@ extern "C" void mcpuMemset(float *allocated, float *aligned, int64_t offset,
   }
 }
 
+extern "C" void mcpuMemsetI16(unsigned short *allocated, unsigned short *aligned, int64_t offset,
+                           int64_t size, int64_t stride, unsigned short value) {
+  for (unsigned i = 0; i < size; ++i) {
+    aligned[i] = value;
+  }
+}
+
 extern "C" StridedMemRefType<float, 1>
 mgpuMemAlloc(float *allocated, float *aligned, int64_t offset, int64_t size,
              int64_t stride) {
   float *gpuPtr;
   hipMalloc((void**)&gpuPtr, size * sizeof(float));
+  return {gpuPtr, gpuPtr, offset, {size}, {stride}};
+}
+
+extern "C" StridedMemRefType<unsigned short, 1>
+mgpuMemAllocI16(unsigned short *allocated, unsigned short *aligned, int64_t offset, int64_t size,
+             int64_t stride) {
+  unsigned short *gpuPtr;
+  hipMalloc((void**)&gpuPtr, size * sizeof(unsigned short));
   return {gpuPtr, gpuPtr, offset, {size}, {stride}};
 }
 
@@ -171,6 +186,17 @@ extern "C" void mgpuMemCopy(float *sourceAllocated, float *sourceAligned,
                             int64_t destStride,
                             unsigned copyDirection) {
   hipMemcpy(destAligned, sourceAligned, sourceSize * sizeof(float),
+            static_cast<hipMemcpyKind>(copyDirection));
+}
+
+extern "C" void mgpuMemCopyI16(unsigned short *sourceAllocated, unsigned short *sourceAligned,
+                            int64_t sourceOffset, int64_t sourceSize,
+                            int64_t sourceStride,
+                            unsigned short *destAllocated, unsigned short *destAligned,
+                            int64_t destOffset, int64_t destSize,
+                            int64_t destStride,
+                            unsigned copyDirection) {
+  hipMemcpy(destAligned, sourceAligned, sourceSize * sizeof(unsigned short),
             static_cast<hipMemcpyKind>(copyDirection));
 }
 

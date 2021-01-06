@@ -1,0 +1,1036 @@
+#map0 = affine_map<(d0) -> (d0)>
+
+
+module {
+  func @miopen_conv2d_kcyx_nchw_nkhw(%arg0: memref<1024x1024x1x1xbf16>, %arg1: memref<128x1024x14x14xbf16>, %arg2: memref<128x1024x14x14xbf16>) {
+    %c4096 = constant 4096 : index
+    %cst = constant 0.000000e+00 : bf16
+    %c8 = constant 8 : index
+    %c-1 = constant -1 : index
+    %c196 = constant 196 : index
+    %c14 = constant 14 : index
+    %cst_0 = constant dense<0.000000e+00> : vector<32xf32>
+    %c63 = constant 63 : index
+    %c4_i32 = constant 4 : i32
+    %c8_i32 = constant 8 : i32
+    %c32 = constant 32 : index
+    %c16_i32 = constant 16 : i32
+    %c256 = constant 256 : index
+    %c128 = constant 128 : index
+    %c64 = constant 64 : index
+    %c2 = constant 2 : index
+    %c16 = constant 16 : index
+    %c0 = constant 0 : index
+    %c4 = constant 4 : index
+    %c1 = constant 1 : index
+    %0 = miopen.workgroup_id : index
+    %1 = miopen.workitem_id : index
+    %2 = remi_signed %0, %c4 : index
+    %3 = divi_signed %0, %c4 : index
+    %4 = muli %2, %c256 : index
+    %5 = muli %3, %c128 : index
+    %6 = index_cast %4 : index to i32
+    %7 = index_cast %5 : index to i32
+    %8 = remi_signed %1, %c4 : index
+    %9 = divi_signed %1, %c4 : index
+    %10 = muli %8, %c4 : index
+    %11 = muli %9, %c4 : index
+    %12 = index_cast %10 : index to i32
+    %13 = index_cast %11 : index to i32
+    %14 = addi %6, %13 : i32
+    %15 = divi_signed %1, %c32 : index
+    %16 = remi_signed %1, %c32 : index
+    %17 = muli %15, %c2 : index
+    %18 = muli %16, %c4 : index
+    %19 = index_cast %17 : index to i32
+    %20 = index_cast %18 : index to i32
+    %21 = addi %7, %20 : i32
+    %22 = miopen.alloc() : memref<6144xbf16, 3>
+    %23 = miopen.alloc() : memref<4x4xbf16, 5>
+    %24 = miopen.alloc() : memref<2x4xbf16, 5>
+    %25 = miopen.alloc() : memref<2xi32, 5>
+    store %12, %25[%c0] : memref<2xi32, 5>
+    store %14, %25[%c1] : memref<2xi32, 5>
+    %26 = miopen.alloc() : memref<2xi32, 5>
+    store %12, %26[%c0] : memref<2xi32, 5>
+    store %13, %26[%c1] : memref<2xi32, 5>
+    %27 = miopen.alloc() : memref<2xi32, 5>
+    store %19, %27[%c0] : memref<2xi32, 5>
+    store %21, %27[%c1] : memref<2xi32, 5>
+    %28 = miopen.alloc() : memref<2xi32, 5>
+    store %19, %28[%c0] : memref<2xi32, 5>
+    store %20, %28[%c1] : memref<2xi32, 5>
+    %29 = load %25[%c0] : memref<2xi32, 5>
+    %30 = load %25[%c1] : memref<2xi32, 5>
+    scf.for %arg3 = %c0 to %c4 step %c1 {
+      %208 = index_cast %arg3 : index to i32
+      scf.for %arg4 = %c0 to %c4 step %c1 {
+        %209 = index_cast %arg4 : index to i32
+        %210 = addi %208, %29 : i32
+        %211 = index_cast %210 : i32 to index
+        %212 = addi %209, %30 : i32
+        %213 = index_cast %212 : i32 to index
+        %214 = load %arg0[%213, %211, %c0, %c0] : memref<1024x1024x1x1xbf16>
+        store %214, %23[%arg4, %arg3] : memref<4x4xbf16, 5>
+      }
+    }
+    %31 = load %26[%c0] : memref<2xi32, 5>
+    %32 = load %26[%c1] : memref<2xi32, 5>
+    scf.for %arg3 = %c0 to %c4 step %c1 {
+      %208 = index_cast %arg3 : index to i32
+      scf.for %arg4 = %c0 to %c4 step %c1 {
+        %209 = index_cast %arg4 : index to i32
+        %210 = load %23[%arg3, %arg4] : memref<4x4xbf16, 5>
+        %211 = addi %208, %31 : i32
+        %212 = index_cast %211 : i32 to index
+        %213 = addi %209, %32 : i32
+        %214 = index_cast %213 : i32 to index
+        %215 = muli %212, %c256 : index
+        %216 = addi %214, %215 : index
+        store %210, %22[%216] : memref<6144xbf16, 3>
+      }
+    }
+    %33 = load %27[%c0] : memref<2xi32, 5>
+    %34 = load %27[%c1] : memref<2xi32, 5>
+    scf.for %arg3 = %c0 to %c2 step %c1 {
+      %208 = index_cast %arg3 : index to i32
+      scf.for %arg4 = %c0 to %c4 step %c1 {
+        %209 = index_cast %arg4 : index to i32
+        %210 = addi %208, %33 : i32
+        %211 = index_cast %210 : i32 to index
+        %212 = addi %209, %34 : i32
+        %213 = index_cast %212 : i32 to index
+        %214 = cmpi "slt", %213, %c0 : index
+        %215 = subi %c-1, %213 : index
+        %216 = select %214, %215, %213 : index
+        %217 = divi_signed %216, %c196 : index
+        %218 = subi %c-1, %217 : index
+        %219 = select %214, %218, %217 : index
+        %220 = remi_signed %213, %c196 : index
+        %221 = cmpi "slt", %220, %c0 : index
+        %222 = addi %220, %c196 : index
+        %223 = select %221, %222, %220 : index
+        %224 = cmpi "slt", %223, %c0 : index
+        %225 = subi %c-1, %223 : index
+        %226 = select %224, %225, %223 : index
+        %227 = divi_signed %226, %c14 : index
+        %228 = subi %c-1, %227 : index
+        %229 = select %224, %228, %227 : index
+        %230 = remi_signed %213, %c196 : index
+        %231 = cmpi "slt", %230, %c0 : index
+        %232 = addi %230, %c196 : index
+        %233 = select %231, %232, %230 : index
+        %234 = remi_signed %233, %c14 : index
+        %235 = cmpi "slt", %234, %c0 : index
+        %236 = addi %234, %c14 : index
+        %237 = select %235, %236, %234 : index
+        %238 = load %arg1[%219, %211, %229, %237] : memref<128x1024x14x14xbf16>
+        store %238, %24[%arg3, %arg4] : memref<2x4xbf16, 5>
+      }
+    }
+    %35 = load %28[%c0] : memref<2xi32, 5>
+    %36 = load %28[%c1] : memref<2xi32, 5>
+    scf.for %arg3 = %c0 to %c2 step %c1 {
+      %208 = index_cast %arg3 : index to i32
+      scf.for %arg4 = %c0 to %c4 step %c1 {
+        %209 = index_cast %arg4 : index to i32
+        %210 = load %24[%arg3, %arg4] : memref<2x4xbf16, 5>
+        %211 = addi %208, %35 : i32
+        %212 = index_cast %211 : i32 to index
+        %213 = addi %209, %36 : i32
+        %214 = index_cast %213 : i32 to index
+        %215 = muli %212, %c128 : index
+        %216 = addi %214, %215 : index
+        %217 = addi %216, %c4096 : index
+        store %210, %22[%217] : memref<6144xbf16, 3>
+      }
+    }
+    %37 = divi_signed %1, %c64 : index
+    %38 = divi_signed %37, %c2 : index
+    %39 = remi_signed %37, %c2 : index
+    %40 = muli %38, %c128 : index
+    %41 = muli %39, %c64 : index
+    %42 = miopen.alloc() : memref<32xbf16, 5>
+    %43 = miopen.alloc() : memref<16xbf16, 5>
+    %44:4 = scf.for %arg3 = %c0 to %c63 step %c1 iter_args(%arg4 = %cst_0, %arg5 = %cst_0, %arg6 = %cst_0, %arg7 = %cst_0) -> (vector<32xf32>, vector<32xf32>, vector<32xf32>, vector<32xf32>) {
+      %208 = load %25[%c0] : memref<2xi32, 5>
+      %209 = addi %208, %c16_i32 : i32
+      store %209, %25[%c0] : memref<2xi32, 5>
+      %210 = load %25[%c1] : memref<2xi32, 5>
+      store %210, %25[%c1] : memref<2xi32, 5>
+      %211 = load %25[%c0] : memref<2xi32, 5>
+      %212 = load %25[%c1] : memref<2xi32, 5>
+      scf.for %arg8 = %c0 to %c4 step %c1 {
+        %229 = index_cast %arg8 : index to i32
+        scf.for %arg9 = %c0 to %c4 step %c1 {
+          %230 = index_cast %arg9 : index to i32
+          %231 = addi %229, %211 : i32
+          %232 = index_cast %231 : i32 to index
+          %233 = addi %230, %212 : i32
+          %234 = index_cast %233 : i32 to index
+          %235 = load %arg0[%234, %232, %c0, %c0] : memref<1024x1024x1x1xbf16>
+          store %235, %23[%arg9, %arg8] : memref<4x4xbf16, 5>
+        }
+      }
+      %213 = load %27[%c0] : memref<2xi32, 5>
+      %214 = addi %213, %c16_i32 : i32
+      store %214, %27[%c0] : memref<2xi32, 5>
+      %215 = load %27[%c1] : memref<2xi32, 5>
+      store %215, %27[%c1] : memref<2xi32, 5>
+      %216 = load %27[%c0] : memref<2xi32, 5>
+      %217 = load %27[%c1] : memref<2xi32, 5>
+      scf.for %arg8 = %c0 to %c2 step %c1 {
+        %229 = index_cast %arg8 : index to i32
+        scf.for %arg9 = %c0 to %c4 step %c1 {
+          %230 = index_cast %arg9 : index to i32
+          %231 = addi %229, %216 : i32
+          %232 = index_cast %231 : i32 to index
+          %233 = addi %230, %217 : i32
+          %234 = index_cast %233 : i32 to index
+          %235 = cmpi "slt", %234, %c0 : index
+          %236 = subi %c-1, %234 : index
+          %237 = select %235, %236, %234 : index
+          %238 = divi_signed %237, %c196 : index
+          %239 = subi %c-1, %238 : index
+          %240 = select %235, %239, %238 : index
+          %241 = remi_signed %234, %c196 : index
+          %242 = cmpi "slt", %241, %c0 : index
+          %243 = addi %241, %c196 : index
+          %244 = select %242, %243, %241 : index
+          %245 = cmpi "slt", %244, %c0 : index
+          %246 = subi %c-1, %244 : index
+          %247 = select %245, %246, %244 : index
+          %248 = divi_signed %247, %c14 : index
+          %249 = subi %c-1, %248 : index
+          %250 = select %245, %249, %248 : index
+          %251 = remi_signed %234, %c196 : index
+          %252 = cmpi "slt", %251, %c0 : index
+          %253 = addi %251, %c196 : index
+          %254 = select %252, %253, %251 : index
+          %255 = remi_signed %254, %c14 : index
+          %256 = cmpi "slt", %255, %c0 : index
+          %257 = addi %255, %c14 : index
+          %258 = select %256, %257, %255 : index
+          %259 = load %arg1[%240, %232, %250, %258] : memref<128x1024x14x14xbf16>
+          store %259, %24[%arg8, %arg9] : memref<2x4xbf16, 5>
+        }
+      }
+      miopen.workgroup_barrier
+      %218 = miopen.workitem_id : index
+      %219 = remi_signed %218, %c64 : index
+      scf.for %arg8 = %c0 to %c1 step %c1 {
+        scf.for %arg9 = %c0 to %c16 step %c1 {
+          %229 = muli %arg8, %c64 : index
+          %230 = muli %arg9, %c256 : index
+          %231 = addi %230, %219 : index
+          %232 = addi %231, %229 : index
+          %233 = addi %40, %232 : index
+          %234 = muli %arg8, %c16 : index
+          %235 = addi %arg9, %234 : index
+          %236 = load %22[%233] : memref<6144xbf16, 3>
+          store %236, %42[%235] : memref<32xbf16, 5>
+        }
+      }
+      scf.for %arg8 = %c0 to %c1 step %c1 {
+        scf.for %arg9 = %c0 to %c16 step %c1 {
+          %229 = muli %arg8, %c64 : index
+          %230 = muli %arg9, %c128 : index
+          %231 = addi %230, %219 : index
+          %232 = addi %231, %229 : index
+          %233 = addi %41, %232 : index
+          %234 = muli %arg8, %c16 : index
+          %235 = addi %arg9, %234 : index
+          %236 = load %22[%233] : memref<6144xbf16, 3>
+          store %236, %43[%235] : memref<16xbf16, 5>
+        }
+      }
+      %220:2 = scf.for %arg8 = %c0 to %c16 step %c1 iter_args(%arg9 = %arg4, %arg10 = %arg5) -> (vector<32xf32>, vector<32xf32>) {
+        %229 = muli %arg8, %c2 : index
+        %230 = vector.transfer_read %42[%229], %cst : memref<32xbf16, 5>, vector<2xbf16>
+        %231 = vector.transfer_read %43[%229], %cst : memref<16xbf16, 5>, vector<2xbf16>
+        %232 = miopen.mfma_v2(%230, %231, %arg9) {imm = [1 : i32, 0 : i32, 0 : i32], instr = "mfma_f32_32x32x2bf16"} : vector<2xbf16>, vector<32xf32>
+        %233 = miopen.mfma_v2(%230, %231, %arg10) {imm = [1 : i32, 1 : i32, 0 : i32], instr = "mfma_f32_32x32x2bf16"} : vector<2xbf16>, vector<32xf32>
+        scf.yield %232, %233 : vector<32xf32>, vector<32xf32>
+      }
+      %221 = addi %40, %c64 : index
+      %222 = miopen.workitem_id : index
+      %223 = remi_signed %222, %c64 : index
+      scf.for %arg8 = %c0 to %c1 step %c1 {
+        scf.for %arg9 = %c0 to %c16 step %c1 {
+          %229 = muli %arg8, %c64 : index
+          %230 = muli %arg9, %c256 : index
+          %231 = addi %230, %223 : index
+          %232 = addi %231, %229 : index
+          %233 = addi %221, %232 : index
+          %234 = muli %arg8, %c16 : index
+          %235 = addi %arg9, %234 : index
+          %236 = load %22[%233] : memref<6144xbf16, 3>
+          store %236, %42[%235] : memref<32xbf16, 5>
+        }
+      }
+      scf.for %arg8 = %c0 to %c1 step %c1 {
+        scf.for %arg9 = %c0 to %c16 step %c1 {
+          %229 = muli %arg8, %c64 : index
+          %230 = muli %arg9, %c128 : index
+          %231 = addi %230, %223 : index
+          %232 = addi %231, %229 : index
+          %233 = addi %41, %232 : index
+          %234 = muli %arg8, %c16 : index
+          %235 = addi %arg9, %234 : index
+          %236 = load %22[%233] : memref<6144xbf16, 3>
+          store %236, %43[%235] : memref<16xbf16, 5>
+        }
+      }
+      %224:2 = scf.for %arg8 = %c0 to %c16 step %c1 iter_args(%arg9 = %arg6, %arg10 = %arg7) -> (vector<32xf32>, vector<32xf32>) {
+        %229 = muli %arg8, %c2 : index
+        %230 = vector.transfer_read %42[%229], %cst : memref<32xbf16, 5>, vector<2xbf16>
+        %231 = vector.transfer_read %43[%229], %cst : memref<16xbf16, 5>, vector<2xbf16>
+        %232 = miopen.mfma_v2(%230, %231, %arg9) {imm = [1 : i32, 0 : i32, 0 : i32], instr = "mfma_f32_32x32x2bf16"} : vector<2xbf16>, vector<32xf32>
+        %233 = miopen.mfma_v2(%230, %231, %arg10) {imm = [1 : i32, 1 : i32, 0 : i32], instr = "mfma_f32_32x32x2bf16"} : vector<2xbf16>, vector<32xf32>
+        scf.yield %232, %233 : vector<32xf32>, vector<32xf32>
+      }
+      miopen.workgroup_barrier
+      %225 = load %26[%c0] : memref<2xi32, 5>
+      %226 = load %26[%c1] : memref<2xi32, 5>
+      scf.for %arg8 = %c0 to %c4 step %c1 {
+        %229 = index_cast %arg8 : index to i32
+        scf.for %arg9 = %c0 to %c4 step %c1 {
+          %230 = index_cast %arg9 : index to i32
+          %231 = load %23[%arg8, %arg9] : memref<4x4xbf16, 5>
+          %232 = addi %229, %225 : i32
+          %233 = index_cast %232 : i32 to index
+          %234 = addi %230, %226 : i32
+          %235 = index_cast %234 : i32 to index
+          %236 = muli %233, %c256 : index
+          %237 = addi %235, %236 : index
+          store %231, %22[%237] : memref<6144xbf16, 3>
+        }
+      }
+      %227 = load %28[%c0] : memref<2xi32, 5>
+      %228 = load %28[%c1] : memref<2xi32, 5>
+      scf.for %arg8 = %c0 to %c2 step %c1 {
+        %229 = index_cast %arg8 : index to i32
+        scf.for %arg9 = %c0 to %c4 step %c1 {
+          %230 = index_cast %arg9 : index to i32
+          %231 = load %24[%arg8, %arg9] : memref<2x4xbf16, 5>
+          %232 = addi %229, %227 : i32
+          %233 = index_cast %232 : i32 to index
+          %234 = addi %230, %228 : i32
+          %235 = index_cast %234 : i32 to index
+          %236 = muli %233, %c128 : index
+          %237 = addi %235, %236 : index
+          %238 = addi %237, %c4096 : index
+          store %231, %22[%238] : memref<6144xbf16, 3>
+        }
+      }
+      scf.yield %220#0, %220#1, %224#0, %224#1 : vector<32xf32>, vector<32xf32>, vector<32xf32>, vector<32xf32>
+    }
+    miopen.workgroup_barrier
+    %45 = miopen.workitem_id : index
+    %46 = remi_signed %45, %c64 : index
+    scf.for %arg3 = %c0 to %c1 step %c1 {
+      scf.for %arg4 = %c0 to %c16 step %c1 {
+        %208 = muli %arg3, %c64 : index
+        %209 = muli %arg4, %c256 : index
+        %210 = addi %209, %46 : index
+        %211 = addi %210, %208 : index
+        %212 = addi %40, %211 : index
+        %213 = muli %arg3, %c16 : index
+        %214 = addi %arg4, %213 : index
+        %215 = load %22[%212] : memref<6144xbf16, 3>
+        store %215, %42[%214] : memref<32xbf16, 5>
+      }
+    }
+    scf.for %arg3 = %c0 to %c1 step %c1 {
+      scf.for %arg4 = %c0 to %c16 step %c1 {
+        %208 = muli %arg3, %c64 : index
+        %209 = muli %arg4, %c128 : index
+        %210 = addi %209, %46 : index
+        %211 = addi %210, %208 : index
+        %212 = addi %41, %211 : index
+        %213 = muli %arg3, %c16 : index
+        %214 = addi %arg4, %213 : index
+        %215 = load %22[%212] : memref<6144xbf16, 3>
+        store %215, %43[%214] : memref<16xbf16, 5>
+      }
+    }
+    %47:2 = scf.for %arg3 = %c0 to %c16 step %c1 iter_args(%arg4 = %44#0, %arg5 = %44#1) -> (vector<32xf32>, vector<32xf32>) {
+      %208 = muli %arg3, %c2 : index
+      %209 = vector.transfer_read %42[%208], %cst : memref<32xbf16, 5>, vector<2xbf16>
+      %210 = vector.transfer_read %43[%208], %cst : memref<16xbf16, 5>, vector<2xbf16>
+      %211 = miopen.mfma_v2(%209, %210, %arg4) {imm = [1 : i32, 0 : i32, 0 : i32], instr = "mfma_f32_32x32x2bf16"} : vector<2xbf16>, vector<32xf32>
+      %212 = miopen.mfma_v2(%209, %210, %arg5) {imm = [1 : i32, 1 : i32, 0 : i32], instr = "mfma_f32_32x32x2bf16"} : vector<2xbf16>, vector<32xf32>
+      scf.yield %211, %212 : vector<32xf32>, vector<32xf32>
+    }
+    %48 = addi %40, %c64 : index
+    %49 = miopen.workitem_id : index
+    %50 = remi_signed %49, %c64 : index
+    scf.for %arg3 = %c0 to %c1 step %c1 {
+      scf.for %arg4 = %c0 to %c16 step %c1 {
+        %208 = muli %arg3, %c64 : index
+        %209 = muli %arg4, %c256 : index
+        %210 = addi %209, %50 : index
+        %211 = addi %210, %208 : index
+        %212 = addi %48, %211 : index
+        %213 = muli %arg3, %c16 : index
+        %214 = addi %arg4, %213 : index
+        %215 = load %22[%212] : memref<6144xbf16, 3>
+        store %215, %42[%214] : memref<32xbf16, 5>
+      }
+    }
+    scf.for %arg3 = %c0 to %c1 step %c1 {
+      scf.for %arg4 = %c0 to %c16 step %c1 {
+        %208 = muli %arg3, %c64 : index
+        %209 = muli %arg4, %c128 : index
+        %210 = addi %209, %50 : index
+        %211 = addi %210, %208 : index
+        %212 = addi %41, %211 : index
+        %213 = muli %arg3, %c16 : index
+        %214 = addi %arg4, %213 : index
+        %215 = load %22[%212] : memref<6144xbf16, 3>
+        store %215, %43[%214] : memref<16xbf16, 5>
+      }
+    }
+    %51:2 = scf.for %arg3 = %c0 to %c16 step %c1 iter_args(%arg4 = %44#2, %arg5 = %44#3) -> (vector<32xf32>, vector<32xf32>) {
+      %208 = muli %arg3, %c2 : index
+      %209 = vector.transfer_read %42[%208], %cst : memref<32xbf16, 5>, vector<2xbf16>
+      %210 = vector.transfer_read %43[%208], %cst : memref<16xbf16, 5>, vector<2xbf16>
+      %211 = miopen.mfma_v2(%209, %210, %arg4) {imm = [1 : i32, 0 : i32, 0 : i32], instr = "mfma_f32_32x32x2bf16"} : vector<2xbf16>, vector<32xf32>
+      %212 = miopen.mfma_v2(%209, %210, %arg5) {imm = [1 : i32, 1 : i32, 0 : i32], instr = "mfma_f32_32x32x2bf16"} : vector<2xbf16>, vector<32xf32>
+      scf.yield %211, %212 : vector<32xf32>, vector<32xf32>
+    }
+    %52 = remi_signed %1, %c64 : index
+    %53 = divi_signed %52, %c32 : index
+    %54 = remi_signed %52, %c32 : index
+    %55 = muli %53, %c4 : index
+    %56 = remi_signed %37, %c2 : index
+    %57 = muli %56, %c64 : index
+    %58 = addi %57, %54 : index
+    %59 = index_cast %58 : index to i32
+    %60 = divi_signed %37, %c2 : index
+    %61 = muli %60, %c128 : index
+    %62 = addi %61, %55 : index
+    %63 = index_cast %62 : index to i32
+    %64 = addi %6, %63 : i32
+    %65 = addi %7, %59 : i32
+    %66 = divi_signed %64, %c8_i32 : i32
+    %67 = remi_signed %64, %c8_i32 : i32
+    %68 = divi_signed %67, %c4_i32 : i32
+    %69 = remi_signed %64, %c4_i32 : i32
+    scf.for %arg3 = %c0 to %c4 step %c1 {
+      %208 = index_cast %arg3 : index to i32
+      scf.for %arg4 = %c0 to %c1 step %c1 {
+        %209 = index_cast %arg4 : index to i32
+        scf.for %arg5 = %c0 to %c4 step %c1 {
+          %210 = index_cast %arg5 : index to i32
+          scf.for %arg6 = %c0 to %c1 step %c1 {
+            %211 = index_cast %arg6 : index to i32
+            %212 = muli %arg3, %c4 : index
+            %213 = addi %212, %arg5 : index
+            %214 = index_cast %213 : index to i32
+            %215 = vector.extractelement %47#0[%214 : i32] : vector<32xf32>
+            %216 = addi %208, %66 : i32
+            %217 = index_cast %216 : i32 to index
+            %218 = addi %209, %68 : i32
+            %219 = index_cast %218 : i32 to index
+            %220 = addi %210, %69 : i32
+            %221 = index_cast %220 : i32 to index
+            %222 = addi %211, %65 : i32
+            %223 = index_cast %222 : i32 to index
+            %224 = cmpi "slt", %223, %c0 : index
+            %225 = subi %c-1, %223 : index
+            %226 = select %224, %225, %223 : index
+            %227 = divi_signed %226, %c196 : index
+            %228 = subi %c-1, %227 : index
+            %229 = select %224, %228, %227 : index
+            %230 = muli %217, %c8 : index
+            %231 = muli %219, %c4 : index
+            %232 = addi %230, %231 : index
+            %233 = addi %232, %221 : index
+            %234 = remi_signed %223, %c196 : index
+            %235 = cmpi "slt", %234, %c0 : index
+            %236 = addi %234, %c196 : index
+            %237 = select %235, %236, %234 : index
+            %238 = cmpi "slt", %237, %c0 : index
+            %239 = subi %c-1, %237 : index
+            %240 = select %238, %239, %237 : index
+            %241 = divi_signed %240, %c14 : index
+            %242 = subi %c-1, %241 : index
+            %243 = select %238, %242, %241 : index
+            %244 = remi_signed %223, %c196 : index
+            %245 = cmpi "slt", %244, %c0 : index
+            %246 = addi %244, %c196 : index
+            %247 = select %245, %246, %244 : index
+            %248 = remi_signed %247, %c14 : index
+            %249 = cmpi "slt", %248, %c0 : index
+            %250 = addi %248, %c14 : index
+            %251 = select %249, %250, %248 : index
+            %252 = fptrunc %215 : f32 to bf16
+            store %252, %arg2[%229, %233, %243, %251] : memref<128x1024x14x14xbf16>
+          }
+        }
+      }
+    }
+    %70 = remi_signed %1, %c64 : index
+    %71 = divi_signed %70, %c32 : index
+    %72 = remi_signed %70, %c32 : index
+    %73 = addi %72, %c32 : index
+    %74 = muli %71, %c4 : index
+    %75 = remi_signed %37, %c2 : index
+    %76 = muli %75, %c64 : index
+    %77 = addi %76, %73 : index
+    %78 = index_cast %77 : index to i32
+    %79 = divi_signed %37, %c2 : index
+    %80 = muli %79, %c128 : index
+    %81 = addi %80, %74 : index
+    %82 = index_cast %81 : index to i32
+    %83 = addi %6, %82 : i32
+    %84 = addi %7, %78 : i32
+    %85 = divi_signed %83, %c8_i32 : i32
+    %86 = remi_signed %83, %c8_i32 : i32
+    %87 = divi_signed %86, %c4_i32 : i32
+    %88 = remi_signed %83, %c4_i32 : i32
+    scf.for %arg3 = %c0 to %c4 step %c1 {
+      %208 = index_cast %arg3 : index to i32
+      scf.for %arg4 = %c0 to %c1 step %c1 {
+        %209 = index_cast %arg4 : index to i32
+        scf.for %arg5 = %c0 to %c4 step %c1 {
+          %210 = index_cast %arg5 : index to i32
+          scf.for %arg6 = %c0 to %c1 step %c1 {
+            %211 = index_cast %arg6 : index to i32
+            %212 = muli %arg3, %c4 : index
+            %213 = addi %212, %arg5 : index
+            %214 = index_cast %213 : index to i32
+            %215 = addi %214, %c16_i32 : i32
+            %216 = vector.extractelement %47#0[%215 : i32] : vector<32xf32>
+            %217 = addi %208, %85 : i32
+            %218 = index_cast %217 : i32 to index
+            %219 = addi %209, %87 : i32
+            %220 = index_cast %219 : i32 to index
+            %221 = addi %210, %88 : i32
+            %222 = index_cast %221 : i32 to index
+            %223 = addi %211, %84 : i32
+            %224 = index_cast %223 : i32 to index
+            %225 = cmpi "slt", %224, %c0 : index
+            %226 = subi %c-1, %224 : index
+            %227 = select %225, %226, %224 : index
+            %228 = divi_signed %227, %c196 : index
+            %229 = subi %c-1, %228 : index
+            %230 = select %225, %229, %228 : index
+            %231 = muli %218, %c8 : index
+            %232 = muli %220, %c4 : index
+            %233 = addi %231, %232 : index
+            %234 = addi %233, %222 : index
+            %235 = remi_signed %224, %c196 : index
+            %236 = cmpi "slt", %235, %c0 : index
+            %237 = addi %235, %c196 : index
+            %238 = select %236, %237, %235 : index
+            %239 = cmpi "slt", %238, %c0 : index
+            %240 = subi %c-1, %238 : index
+            %241 = select %239, %240, %238 : index
+            %242 = divi_signed %241, %c14 : index
+            %243 = subi %c-1, %242 : index
+            %244 = select %239, %243, %242 : index
+            %245 = remi_signed %224, %c196 : index
+            %246 = cmpi "slt", %245, %c0 : index
+            %247 = addi %245, %c196 : index
+            %248 = select %246, %247, %245 : index
+            %249 = remi_signed %248, %c14 : index
+            %250 = cmpi "slt", %249, %c0 : index
+            %251 = addi %249, %c14 : index
+            %252 = select %250, %251, %249 : index
+            %253 = fptrunc %216 : f32 to bf16
+            store %253, %arg2[%230, %234, %244, %252] : memref<128x1024x14x14xbf16>
+          }
+        }
+      }
+    }
+    %89 = remi_signed %1, %c64 : index
+    %90 = divi_signed %89, %c32 : index
+    %91 = remi_signed %89, %c32 : index
+    %92 = muli %90, %c4 : index
+    %93 = addi %92, %c32 : index
+    %94 = remi_signed %37, %c2 : index
+    %95 = muli %94, %c64 : index
+    %96 = addi %95, %91 : index
+    %97 = index_cast %96 : index to i32
+    %98 = divi_signed %37, %c2 : index
+    %99 = muli %98, %c128 : index
+    %100 = addi %99, %93 : index
+    %101 = index_cast %100 : index to i32
+    %102 = addi %6, %101 : i32
+    %103 = addi %7, %97 : i32
+    %104 = divi_signed %102, %c8_i32 : i32
+    %105 = remi_signed %102, %c8_i32 : i32
+    %106 = divi_signed %105, %c4_i32 : i32
+    %107 = remi_signed %102, %c4_i32 : i32
+    scf.for %arg3 = %c0 to %c4 step %c1 {
+      %208 = index_cast %arg3 : index to i32
+      scf.for %arg4 = %c0 to %c1 step %c1 {
+        %209 = index_cast %arg4 : index to i32
+        scf.for %arg5 = %c0 to %c4 step %c1 {
+          %210 = index_cast %arg5 : index to i32
+          scf.for %arg6 = %c0 to %c1 step %c1 {
+            %211 = index_cast %arg6 : index to i32
+            %212 = muli %arg3, %c4 : index
+            %213 = addi %212, %arg5 : index
+            %214 = index_cast %213 : index to i32
+            %215 = vector.extractelement %47#1[%214 : i32] : vector<32xf32>
+            %216 = addi %208, %104 : i32
+            %217 = index_cast %216 : i32 to index
+            %218 = addi %209, %106 : i32
+            %219 = index_cast %218 : i32 to index
+            %220 = addi %210, %107 : i32
+            %221 = index_cast %220 : i32 to index
+            %222 = addi %211, %103 : i32
+            %223 = index_cast %222 : i32 to index
+            %224 = cmpi "slt", %223, %c0 : index
+            %225 = subi %c-1, %223 : index
+            %226 = select %224, %225, %223 : index
+            %227 = divi_signed %226, %c196 : index
+            %228 = subi %c-1, %227 : index
+            %229 = select %224, %228, %227 : index
+            %230 = muli %217, %c8 : index
+            %231 = muli %219, %c4 : index
+            %232 = addi %230, %231 : index
+            %233 = addi %232, %221 : index
+            %234 = remi_signed %223, %c196 : index
+            %235 = cmpi "slt", %234, %c0 : index
+            %236 = addi %234, %c196 : index
+            %237 = select %235, %236, %234 : index
+            %238 = cmpi "slt", %237, %c0 : index
+            %239 = subi %c-1, %237 : index
+            %240 = select %238, %239, %237 : index
+            %241 = divi_signed %240, %c14 : index
+            %242 = subi %c-1, %241 : index
+            %243 = select %238, %242, %241 : index
+            %244 = remi_signed %223, %c196 : index
+            %245 = cmpi "slt", %244, %c0 : index
+            %246 = addi %244, %c196 : index
+            %247 = select %245, %246, %244 : index
+            %248 = remi_signed %247, %c14 : index
+            %249 = cmpi "slt", %248, %c0 : index
+            %250 = addi %248, %c14 : index
+            %251 = select %249, %250, %248 : index
+            %252 = fptrunc %215 : f32 to bf16
+            store %252, %arg2[%229, %233, %243, %251] : memref<128x1024x14x14xbf16>
+          }
+        }
+      }
+    }
+    %108 = remi_signed %1, %c64 : index
+    %109 = divi_signed %108, %c32 : index
+    %110 = remi_signed %108, %c32 : index
+    %111 = addi %110, %c32 : index
+    %112 = muli %109, %c4 : index
+    %113 = addi %112, %c32 : index
+    %114 = remi_signed %37, %c2 : index
+    %115 = muli %114, %c64 : index
+    %116 = addi %115, %111 : index
+    %117 = index_cast %116 : index to i32
+    %118 = divi_signed %37, %c2 : index
+    %119 = muli %118, %c128 : index
+    %120 = addi %119, %113 : index
+    %121 = index_cast %120 : index to i32
+    %122 = addi %6, %121 : i32
+    %123 = addi %7, %117 : i32
+    %124 = divi_signed %122, %c8_i32 : i32
+    %125 = remi_signed %122, %c8_i32 : i32
+    %126 = divi_signed %125, %c4_i32 : i32
+    %127 = remi_signed %122, %c4_i32 : i32
+    scf.for %arg3 = %c0 to %c4 step %c1 {
+      %208 = index_cast %arg3 : index to i32
+      scf.for %arg4 = %c0 to %c1 step %c1 {
+        %209 = index_cast %arg4 : index to i32
+        scf.for %arg5 = %c0 to %c4 step %c1 {
+          %210 = index_cast %arg5 : index to i32
+          scf.for %arg6 = %c0 to %c1 step %c1 {
+            %211 = index_cast %arg6 : index to i32
+            %212 = muli %arg3, %c4 : index
+            %213 = addi %212, %arg5 : index
+            %214 = index_cast %213 : index to i32
+            %215 = addi %214, %c16_i32 : i32
+            %216 = vector.extractelement %47#1[%215 : i32] : vector<32xf32>
+            %217 = addi %208, %124 : i32
+            %218 = index_cast %217 : i32 to index
+            %219 = addi %209, %126 : i32
+            %220 = index_cast %219 : i32 to index
+            %221 = addi %210, %127 : i32
+            %222 = index_cast %221 : i32 to index
+            %223 = addi %211, %123 : i32
+            %224 = index_cast %223 : i32 to index
+            %225 = cmpi "slt", %224, %c0 : index
+            %226 = subi %c-1, %224 : index
+            %227 = select %225, %226, %224 : index
+            %228 = divi_signed %227, %c196 : index
+            %229 = subi %c-1, %228 : index
+            %230 = select %225, %229, %228 : index
+            %231 = muli %218, %c8 : index
+            %232 = muli %220, %c4 : index
+            %233 = addi %231, %232 : index
+            %234 = addi %233, %222 : index
+            %235 = remi_signed %224, %c196 : index
+            %236 = cmpi "slt", %235, %c0 : index
+            %237 = addi %235, %c196 : index
+            %238 = select %236, %237, %235 : index
+            %239 = cmpi "slt", %238, %c0 : index
+            %240 = subi %c-1, %238 : index
+            %241 = select %239, %240, %238 : index
+            %242 = divi_signed %241, %c14 : index
+            %243 = subi %c-1, %242 : index
+            %244 = select %239, %243, %242 : index
+            %245 = remi_signed %224, %c196 : index
+            %246 = cmpi "slt", %245, %c0 : index
+            %247 = addi %245, %c196 : index
+            %248 = select %246, %247, %245 : index
+            %249 = remi_signed %248, %c14 : index
+            %250 = cmpi "slt", %249, %c0 : index
+            %251 = addi %249, %c14 : index
+            %252 = select %250, %251, %249 : index
+            %253 = fptrunc %216 : f32 to bf16
+            store %253, %arg2[%230, %234, %244, %252] : memref<128x1024x14x14xbf16>
+          }
+        }
+      }
+    }
+    %128 = remi_signed %1, %c64 : index
+    %129 = divi_signed %128, %c32 : index
+    %130 = remi_signed %128, %c32 : index
+    %131 = muli %129, %c4 : index
+    %132 = addi %131, %c64 : index
+    %133 = remi_signed %37, %c2 : index
+    %134 = muli %133, %c64 : index
+    %135 = addi %134, %130 : index
+    %136 = index_cast %135 : index to i32
+    %137 = divi_signed %37, %c2 : index
+    %138 = muli %137, %c128 : index
+    %139 = addi %138, %132 : index
+    %140 = index_cast %139 : index to i32
+    %141 = addi %6, %140 : i32
+    %142 = addi %7, %136 : i32
+    %143 = divi_signed %141, %c8_i32 : i32
+    %144 = remi_signed %141, %c8_i32 : i32
+    %145 = divi_signed %144, %c4_i32 : i32
+    %146 = remi_signed %141, %c4_i32 : i32
+    scf.for %arg3 = %c0 to %c4 step %c1 {
+      %208 = index_cast %arg3 : index to i32
+      scf.for %arg4 = %c0 to %c1 step %c1 {
+        %209 = index_cast %arg4 : index to i32
+        scf.for %arg5 = %c0 to %c4 step %c1 {
+          %210 = index_cast %arg5 : index to i32
+          scf.for %arg6 = %c0 to %c1 step %c1 {
+            %211 = index_cast %arg6 : index to i32
+            %212 = muli %arg3, %c4 : index
+            %213 = addi %212, %arg5 : index
+            %214 = index_cast %213 : index to i32
+            %215 = vector.extractelement %51#0[%214 : i32] : vector<32xf32>
+            %216 = addi %208, %143 : i32
+            %217 = index_cast %216 : i32 to index
+            %218 = addi %209, %145 : i32
+            %219 = index_cast %218 : i32 to index
+            %220 = addi %210, %146 : i32
+            %221 = index_cast %220 : i32 to index
+            %222 = addi %211, %142 : i32
+            %223 = index_cast %222 : i32 to index
+            %224 = cmpi "slt", %223, %c0 : index
+            %225 = subi %c-1, %223 : index
+            %226 = select %224, %225, %223 : index
+            %227 = divi_signed %226, %c196 : index
+            %228 = subi %c-1, %227 : index
+            %229 = select %224, %228, %227 : index
+            %230 = muli %217, %c8 : index
+            %231 = muli %219, %c4 : index
+            %232 = addi %230, %231 : index
+            %233 = addi %232, %221 : index
+            %234 = remi_signed %223, %c196 : index
+            %235 = cmpi "slt", %234, %c0 : index
+            %236 = addi %234, %c196 : index
+            %237 = select %235, %236, %234 : index
+            %238 = cmpi "slt", %237, %c0 : index
+            %239 = subi %c-1, %237 : index
+            %240 = select %238, %239, %237 : index
+            %241 = divi_signed %240, %c14 : index
+            %242 = subi %c-1, %241 : index
+            %243 = select %238, %242, %241 : index
+            %244 = remi_signed %223, %c196 : index
+            %245 = cmpi "slt", %244, %c0 : index
+            %246 = addi %244, %c196 : index
+            %247 = select %245, %246, %244 : index
+            %248 = remi_signed %247, %c14 : index
+            %249 = cmpi "slt", %248, %c0 : index
+            %250 = addi %248, %c14 : index
+            %251 = select %249, %250, %248 : index
+            %252 = fptrunc %215 : f32 to bf16
+            store %252, %arg2[%229, %233, %243, %251] : memref<128x1024x14x14xbf16>
+          }
+        }
+      }
+    }
+    %147 = remi_signed %1, %c64 : index
+    %148 = divi_signed %147, %c32 : index
+    %149 = remi_signed %147, %c32 : index
+    %150 = addi %149, %c32 : index
+    %151 = muli %148, %c4 : index
+    %152 = addi %151, %c64 : index
+    %153 = remi_signed %37, %c2 : index
+    %154 = muli %153, %c64 : index
+    %155 = addi %154, %150 : index
+    %156 = index_cast %155 : index to i32
+    %157 = divi_signed %37, %c2 : index
+    %158 = muli %157, %c128 : index
+    %159 = addi %158, %152 : index
+    %160 = index_cast %159 : index to i32
+    %161 = addi %6, %160 : i32
+    %162 = addi %7, %156 : i32
+    %163 = divi_signed %161, %c8_i32 : i32
+    %164 = remi_signed %161, %c8_i32 : i32
+    %165 = divi_signed %164, %c4_i32 : i32
+    %166 = remi_signed %161, %c4_i32 : i32
+    scf.for %arg3 = %c0 to %c4 step %c1 {
+      %208 = index_cast %arg3 : index to i32
+      scf.for %arg4 = %c0 to %c1 step %c1 {
+        %209 = index_cast %arg4 : index to i32
+        scf.for %arg5 = %c0 to %c4 step %c1 {
+          %210 = index_cast %arg5 : index to i32
+          scf.for %arg6 = %c0 to %c1 step %c1 {
+            %211 = index_cast %arg6 : index to i32
+            %212 = muli %arg3, %c4 : index
+            %213 = addi %212, %arg5 : index
+            %214 = index_cast %213 : index to i32
+            %215 = addi %214, %c16_i32 : i32
+            %216 = vector.extractelement %51#0[%215 : i32] : vector<32xf32>
+            %217 = addi %208, %163 : i32
+            %218 = index_cast %217 : i32 to index
+            %219 = addi %209, %165 : i32
+            %220 = index_cast %219 : i32 to index
+            %221 = addi %210, %166 : i32
+            %222 = index_cast %221 : i32 to index
+            %223 = addi %211, %162 : i32
+            %224 = index_cast %223 : i32 to index
+            %225 = cmpi "slt", %224, %c0 : index
+            %226 = subi %c-1, %224 : index
+            %227 = select %225, %226, %224 : index
+            %228 = divi_signed %227, %c196 : index
+            %229 = subi %c-1, %228 : index
+            %230 = select %225, %229, %228 : index
+            %231 = muli %218, %c8 : index
+            %232 = muli %220, %c4 : index
+            %233 = addi %231, %232 : index
+            %234 = addi %233, %222 : index
+            %235 = remi_signed %224, %c196 : index
+            %236 = cmpi "slt", %235, %c0 : index
+            %237 = addi %235, %c196 : index
+            %238 = select %236, %237, %235 : index
+            %239 = cmpi "slt", %238, %c0 : index
+            %240 = subi %c-1, %238 : index
+            %241 = select %239, %240, %238 : index
+            %242 = divi_signed %241, %c14 : index
+            %243 = subi %c-1, %242 : index
+            %244 = select %239, %243, %242 : index
+            %245 = remi_signed %224, %c196 : index
+            %246 = cmpi "slt", %245, %c0 : index
+            %247 = addi %245, %c196 : index
+            %248 = select %246, %247, %245 : index
+            %249 = remi_signed %248, %c14 : index
+            %250 = cmpi "slt", %249, %c0 : index
+            %251 = addi %249, %c14 : index
+            %252 = select %250, %251, %249 : index
+            %253 = fptrunc %216 : f32 to bf16
+            store %253, %arg2[%230, %234, %244, %252] : memref<128x1024x14x14xbf16>
+          }
+        }
+      }
+    }
+    %167 = remi_signed %1, %c64 : index
+    %168 = divi_signed %167, %c32 : index
+    %169 = remi_signed %167, %c32 : index
+    %170 = muli %168, %c4 : index
+    %171 = addi %170, %c32 : index
+    %172 = addi %171, %c64 : index
+    %173 = remi_signed %37, %c2 : index
+    %174 = muli %173, %c64 : index
+    %175 = addi %174, %169 : index
+    %176 = index_cast %175 : index to i32
+    %177 = divi_signed %37, %c2 : index
+    %178 = muli %177, %c128 : index
+    %179 = addi %178, %172 : index
+    %180 = index_cast %179 : index to i32
+    %181 = addi %6, %180 : i32
+    %182 = addi %7, %176 : i32
+    %183 = divi_signed %181, %c8_i32 : i32
+    %184 = remi_signed %181, %c8_i32 : i32
+    %185 = divi_signed %184, %c4_i32 : i32
+    %186 = remi_signed %181, %c4_i32 : i32
+    scf.for %arg3 = %c0 to %c4 step %c1 {
+      %208 = index_cast %arg3 : index to i32
+      scf.for %arg4 = %c0 to %c1 step %c1 {
+        %209 = index_cast %arg4 : index to i32
+        scf.for %arg5 = %c0 to %c4 step %c1 {
+          %210 = index_cast %arg5 : index to i32
+          scf.for %arg6 = %c0 to %c1 step %c1 {
+            %211 = index_cast %arg6 : index to i32
+            %212 = muli %arg3, %c4 : index
+            %213 = addi %212, %arg5 : index
+            %214 = index_cast %213 : index to i32
+            %215 = vector.extractelement %51#1[%214 : i32] : vector<32xf32>
+            %216 = addi %208, %183 : i32
+            %217 = index_cast %216 : i32 to index
+            %218 = addi %209, %185 : i32
+            %219 = index_cast %218 : i32 to index
+            %220 = addi %210, %186 : i32
+            %221 = index_cast %220 : i32 to index
+            %222 = addi %211, %182 : i32
+            %223 = index_cast %222 : i32 to index
+            %224 = cmpi "slt", %223, %c0 : index
+            %225 = subi %c-1, %223 : index
+            %226 = select %224, %225, %223 : index
+            %227 = divi_signed %226, %c196 : index
+            %228 = subi %c-1, %227 : index
+            %229 = select %224, %228, %227 : index
+            %230 = muli %217, %c8 : index
+            %231 = muli %219, %c4 : index
+            %232 = addi %230, %231 : index
+            %233 = addi %232, %221 : index
+            %234 = remi_signed %223, %c196 : index
+            %235 = cmpi "slt", %234, %c0 : index
+            %236 = addi %234, %c196 : index
+            %237 = select %235, %236, %234 : index
+            %238 = cmpi "slt", %237, %c0 : index
+            %239 = subi %c-1, %237 : index
+            %240 = select %238, %239, %237 : index
+            %241 = divi_signed %240, %c14 : index
+            %242 = subi %c-1, %241 : index
+            %243 = select %238, %242, %241 : index
+            %244 = remi_signed %223, %c196 : index
+            %245 = cmpi "slt", %244, %c0 : index
+            %246 = addi %244, %c196 : index
+            %247 = select %245, %246, %244 : index
+            %248 = remi_signed %247, %c14 : index
+            %249 = cmpi "slt", %248, %c0 : index
+            %250 = addi %248, %c14 : index
+            %251 = select %249, %250, %248 : index
+            %252 = fptrunc %215 : f32 to bf16
+            store %252, %arg2[%229, %233, %243, %251] : memref<128x1024x14x14xbf16>
+          }
+        }
+      }
+    }
+    %187 = remi_signed %1, %c64 : index
+    %188 = divi_signed %187, %c32 : index
+    %189 = remi_signed %187, %c32 : index
+    %190 = addi %189, %c32 : index
+    %191 = muli %188, %c4 : index
+    %192 = addi %191, %c32 : index
+    %193 = addi %192, %c64 : index
+    %194 = remi_signed %37, %c2 : index
+    %195 = muli %194, %c64 : index
+    %196 = addi %195, %190 : index
+    %197 = index_cast %196 : index to i32
+    %198 = divi_signed %37, %c2 : index
+    %199 = muli %198, %c128 : index
+    %200 = addi %199, %193 : index
+    %201 = index_cast %200 : index to i32
+    %202 = addi %6, %201 : i32
+    %203 = addi %7, %197 : i32
+    %204 = divi_signed %202, %c8_i32 : i32
+    %205 = remi_signed %202, %c8_i32 : i32
+    %206 = divi_signed %205, %c4_i32 : i32
+    %207 = remi_signed %202, %c4_i32 : i32
+    scf.for %arg3 = %c0 to %c4 step %c1 {
+      %208 = index_cast %arg3 : index to i32
+      scf.for %arg4 = %c0 to %c1 step %c1 {
+        %209 = index_cast %arg4 : index to i32
+        scf.for %arg5 = %c0 to %c4 step %c1 {
+          %210 = index_cast %arg5 : index to i32
+          scf.for %arg6 = %c0 to %c1 step %c1 {
+            %211 = index_cast %arg6 : index to i32
+            %212 = muli %arg3, %c4 : index
+            %213 = addi %212, %arg5 : index
+            %214 = index_cast %213 : index to i32
+            %215 = addi %214, %c16_i32 : i32
+            %216 = vector.extractelement %51#1[%215 : i32] : vector<32xf32>
+            %217 = addi %208, %204 : i32
+            %218 = index_cast %217 : i32 to index
+            %219 = addi %209, %206 : i32
+            %220 = index_cast %219 : i32 to index
+            %221 = addi %210, %207 : i32
+            %222 = index_cast %221 : i32 to index
+            %223 = addi %211, %203 : i32
+            %224 = index_cast %223 : i32 to index
+            %225 = cmpi "slt", %224, %c0 : index
+            %226 = subi %c-1, %224 : index
+            %227 = select %225, %226, %224 : index
+            %228 = divi_signed %227, %c196 : index
+            %229 = subi %c-1, %228 : index
+            %230 = select %225, %229, %228 : index
+            %231 = muli %218, %c8 : index
+            %232 = muli %220, %c4 : index
+            %233 = addi %231, %232 : index
+            %234 = addi %233, %222 : index
+            %235 = remi_signed %224, %c196 : index
+            %236 = cmpi "slt", %235, %c0 : index
+            %237 = addi %235, %c196 : index
+            %238 = select %236, %237, %235 : index
+            %239 = cmpi "slt", %238, %c0 : index
+            %240 = subi %c-1, %238 : index
+            %241 = select %239, %240, %238 : index
+            %242 = divi_signed %241, %c14 : index
+            %243 = subi %c-1, %242 : index
+            %244 = select %239, %243, %242 : index
+            %245 = remi_signed %224, %c196 : index
+            %246 = cmpi "slt", %245, %c0 : index
+            %247 = addi %245, %c196 : index
+            %248 = select %246, %247, %245 : index
+            %249 = remi_signed %248, %c14 : index
+            %250 = cmpi "slt", %249, %c0 : index
+            %251 = addi %249, %c14 : index
+            %252 = select %250, %251, %249 : index
+            %253 = fptrunc %216 : f32 to bf16
+            store %253, %arg2[%230, %234, %244, %252] : memref<128x1024x14x14xbf16>
+          }
+        }
+      }
+    }
+    return
+  }
+  func @main() {
+    %0 = alloc() : memref<1024x1024x1x1xbf16>
+    %1 = alloc() : memref<128x1024x14x14xbf16>
+    %2 = alloc() : memref<128x1024x14x14xbf16>
+    %3 = memref_cast %0 : memref<1024x1024x1x1xbf16> to memref<?x?x?x?xbf16>
+    %4 = memref_cast %1 : memref<128x1024x14x14xbf16> to memref<?x?x?x?xbf16>
+    %5 = memref_cast %2 : memref<128x1024x14x14xbf16> to memref<?x?x?x?xbf16>
+    %cst = constant 1.000000e+00 : bf16
+    %cst_0 = constant 0.000000e+00 : bf16
+    call @mcpuMemset4DBF16(%3, %cst) : (memref<?x?x?x?xbf16>, bf16) -> ()
+    call @mcpuMemset4DBF16(%4, %cst) : (memref<?x?x?x?xbf16>, bf16) -> ()
+    call @mcpuMemset4DBF16(%5, %cst_0) : (memref<?x?x?x?xbf16>, bf16) -> ()
+    %6 = call @mgpuMemAlloc4DBF16(%3) : (memref<?x?x?x?xbf16>) -> memref<?x?x?x?xbf16>
+    %7 = call @mgpuMemAlloc4DBF16(%4) : (memref<?x?x?x?xbf16>) -> memref<?x?x?x?xbf16>
+    %8 = call @mgpuMemAlloc4DBF16(%5) : (memref<?x?x?x?xbf16>) -> memref<?x?x?x?xbf16>
+    %c1_i32 = constant 1 : i32
+    %c2_i32 = constant 2 : i32
+    call @mgpuMemCopy4DBF16(%3, %6, %c1_i32) : (memref<?x?x?x?xbf16>, memref<?x?x?x?xbf16>, i32) -> ()
+    call @mgpuMemCopy4DBF16(%4, %7, %c1_i32) : (memref<?x?x?x?xbf16>, memref<?x?x?x?xbf16>, i32) -> ()
+    call @mgpuMemCopy4DBF16(%5, %8, %c1_i32) : (memref<?x?x?x?xbf16>, memref<?x?x?x?xbf16>, i32) -> ()
+    %9 = memref_cast %6 : memref<?x?x?x?xbf16> to memref<1024x1024x1x1xbf16>
+    %10 = memref_cast %7 : memref<?x?x?x?xbf16> to memref<128x1024x14x14xbf16>
+    %11 = memref_cast %8 : memref<?x?x?x?xbf16> to memref<128x1024x14x14xbf16>
+    call @conv2d(%9, %10, %11) : (memref<1024x1024x1x1xbf16>, memref<128x1024x14x14xbf16>, memref<128x1024x14x14xbf16>) -> ()
+    call @mgpuMemCopy4DBF16(%8, %5, %c2_i32) : (memref<?x?x?x?xbf16>, memref<?x?x?x?xbf16>, i32) -> ()
+    call @mgpuMemDealloc4DBF16(%3) : (memref<?x?x?x?xbf16>) -> ()
+    call @mgpuMemDealloc4DBF16(%4) : (memref<?x?x?x?xbf16>) -> ()
+    call @mgpuMemDealloc4DBF16(%5) : (memref<?x?x?x?xbf16>) -> ()
+    dealloc %0 : memref<1024x1024x1x1xbf16>
+    dealloc %1 : memref<128x1024x14x14xbf16>
+    dealloc %2 : memref<128x1024x14x14xbf16>
+    return
+  }
+  func @mcpuMemset4DBF16(memref<?x?x?x?xbf16>, bf16)
+  func @mgpuMemAlloc4DBF16(memref<?x?x?x?xbf16>) -> memref<?x?x?x?xbf16>
+  func @mgpuMemCopy4DBF16(memref<?x?x?x?xbf16>, memref<?x?x?x?xbf16>, i32)
+  func @conv2d(%arg0: memref<1024x1024x1x1xbf16>, %arg1: memref<128x1024x14x14xbf16>, %arg2: memref<128x1024x14x14xbf16>) {
+    return
+  }
+  func @mgpuMemDealloc4DBF16(memref<?x?x?x?xbf16>)
+}
