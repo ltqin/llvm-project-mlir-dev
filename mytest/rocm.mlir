@@ -8,10 +8,12 @@ func @vecadd(%arg0 : memref<?xf32>, %arg1 : memref<?xf32>, %arg2 : memref<?xi16>
     %a = load %arg0[%tx] : memref<?xf32>
     %b = load %arg1[%tx] : memref<?xf32>
     %c = addf %a, %b : f32
-    //%d = fptrunc %c : f32 to bf16
-    %d = constant 2 : i16
-    //%g = bitcast %d : bf16 to i16
-    store %d, %arg2[%tx] : memref<?xi16>
+    
+    %d = llvm.mlir.cast %c : f32 to !llvm.float
+    %e = llvm.bitcast %d : !llvm.float to !llvm.i32
+    %f = llvm.trunc %e : !llvm.i32 to !llvm.i16
+    %g = llvm.mlir.cast %f : !llvm.i16 to i16
+    store %g, %arg2[%tx] : memref<?xi16>
     gpu.terminator
   }
   return
@@ -29,7 +31,7 @@ func @main() {
   %5 = memref_cast %2 : memref<16xi16> to memref<?xi16>
 
   // populate initial values.
-  %cst = constant 1.5 : f32
+  %cst = constant 1.0 : f32
   %cst0 = constant 1 : i16
   call @mcpuMemset(%3, %cst) : (memref<?xf32>, f32) -> ()
   call @mcpuMemset(%4, %cst) : (memref<?xf32>, f32) -> ()
