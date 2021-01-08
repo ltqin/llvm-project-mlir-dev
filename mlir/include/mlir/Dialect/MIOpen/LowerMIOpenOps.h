@@ -4254,8 +4254,8 @@ struct ThreadwiseCopyV2RewritePattern
       // Issue scalar store.
       if (dataType == b.getF32Type()) {
         innerLoopBuilder.create<StoreOp>(loc, scalarValue, op.dest(), destLowerIndices);
-      } else if (dataType == b.getF16Type() || dataType == b.getBF16Type()) {
-        auto truncValue = innerLoopBuilder.create<FPTruncOp>(loc, scalarValue, dataType);
+      } else if (dataType == b.getF16Type() || dataType == b.getBF16Type() || dataType == b.getIntegerType(16) ) {
+        auto truncValue = innerLoopBuilder.create<miopen.data_convert>(loc, scalarValue, dataType);
         innerLoopBuilder.create<StoreOp>(loc, truncValue, op.dest(), destLowerIndices);
       }
     }

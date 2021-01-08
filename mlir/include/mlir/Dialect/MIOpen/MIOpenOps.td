@@ -311,4 +311,13 @@ def MIOpen_XdlopsGemmV2Op:
   }];
 }
 
+def MIOpen_DataConvertOp :
+    MIOpen_Op<"data_convert">,
+    Arguments<(ins AnyTypeOf<[F32,F16,BF16,I16]>:$in)>,
+    Results<(outs AnyTypeOf<[F32,F16,BF16,I16]>:$out)> {
+  let summary = "from data type to another";
+  let description = [{
+    The `miopen.data_convert` op transforms some data type.
+  }];
+}
 #endif // MIOPEN_OPS
