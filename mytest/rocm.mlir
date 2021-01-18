@@ -9,11 +9,23 @@ func @vecadd(%arg0 : memref<?xf32>, %arg1 : memref<?xf32>, %arg2 : memref<?xi16>
     %b = load %arg1[%tx] : memref<?xf32>
     %c = addf %a, %b : f32
    
-    %_c0 = llvm.mlir.constant(16: i32) :!llvm.i32 
-    %d = llvm.mlir.cast %c : f32 to !llvm.float
-    %e = llvm.bitcast %d : !llvm.float to !llvm.i32
-    %f = llvm.lshr %e, %_c0 : !llvm.i32
-    %g = llvm.trunc %f : !llvm.i32 to !llvm.i16
+//    %_c0 = llvm.mlir.constant(16: i32) :!llvm.i32 
+      %d = llvm.mlir.cast %c : f32 to !llvm.float
+//    %e = llvm.bitcast %d : !llvm.float to !llvm.i32
+//    %f = llvm.lshr %e, %_c0 : !llvm.i32
+//    %g = llvm.trunc %f : !llvm.i32 to !llvm.i16
+
+      %1973 = llvm.bitcast %d : !llvm.float to !llvm.i32
+      %1974 = llvm.mlir.constant(16 : i32) : !llvm.i32
+      %1975 = llvm.lshr %1973, %1974 : !llvm.i32
+      %1976 = llvm.mlir.constant(1 : i32) : !llvm.i32
+      %1977 = llvm.and %1975, %1976 : !llvm.i32
+      %1978 = llvm.mlir.constant(32767 : i32) : !llvm.i32
+      %1979 = llvm.add %1973, %1978 : !llvm.i32
+      %1980 = llvm.add %1977, %1979 : !llvm.i32
+      %1981 = llvm.lshr %1980, %1974 : !llvm.i32
+      %g = llvm.trunc %1981 : !llvm.i32 to !llvm.i16
+
     %h = llvm.mlir.cast %g : !llvm.i16 to i16
     store %h, %arg2[%tx] : memref<?xi16>
     gpu.terminator
